@@ -1,0 +1,95 @@
+{
+  "measurements": [
+    {
+      "width": 1280,
+      "route": "/",
+      "sideGap": 32,
+      "contentWidth": 1216
+    },
+    {
+      "width": 1280,
+      "route": "/my-profile",
+      "sideGap": 32,
+      "contentWidth": 1216
+    },
+    {
+      "width": 1280,
+      "route": "/student/hiba-naseer",
+      "sideGap": 32,
+      "contentWidth": 1216
+    },
+    {
+      "width": 1440,
+      "route": "/",
+      "sideGap": 36,
+      "contentWidth": 1368
+    },
+    {
+      "width": 1440,
+      "route": "/my-profile",
+      "sideGap": 36,
+      "contentWidth": 1368
+    },
+    {
+      "width": 1440,
+      "route": "/student/hiba-naseer",
+      "sideGap": 36,
+      "contentWidth": 1368
+    },
+    {
+      "width": 1920,
+      "route": "/",
+      "sideGap": 48,
+      "contentWidth": 1824
+    },
+    {
+      "width": 1920,
+      "route": "/my-profile",
+      "sideGap": 48,
+      "contentWidth": 1824
+    },
+    {
+      "width": 1920,
+      "route": "/student/hiba-naseer",
+      "sideGap": 48,
+      "contentWidth": 1824
+    },
+    {
+      "width": 2560,
+      "route": "/",
+      "sideGap": 64,
+      "contentWidth": 2432
+    },
+    {
+      "width": 2560,
+      "route": "/my-profile",
+      "sideGap": 64,
+      "contentWidth": 2432
+    },
+    {
+      "width": 2560,
+      "route": "/student/hiba-naseer",
+      "sideGap": 64,
+      "contentWidth": 2432
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "sideGap": 20,
+      "contentWidth": 350
+    },
+    {
+      "width": 390,
+      "route": "/my-profile",
+      "sideGap": 0,
+      "contentWidth": 390
+    },
+    {
+      "width": 390,
+      "route": "/student/hiba-naseer",
+      "sideGap": 0,
+      "contentWidth": 390
+    }
+  ],
+  "errors": []
+}

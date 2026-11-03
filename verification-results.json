@@ -1,0 +1,16 @@
+{
+  "results": [
+    "11 profile cards on homepage",
+    "Hiba search, navigation and local portrait decoding",
+    "Connect demo feedback",
+    "Draft save/reload, publish/reload and portfolio",
+    "Combined filters",
+    "No-results and reset",
+    "No horizontal overflow at 1440px",
+    "No horizontal overflow at 768px",
+    "No horizontal overflow at 390px",
+    "No horizontal overflow at 320px",
+    "Reduced-motion preference"
+  ],
+  "errors": []
+}

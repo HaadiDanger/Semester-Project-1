@@ -1,0 +1,23 @@
+{
+  "measurements": [
+    {
+      "width": 1280,
+      "route": "/my-profile",
+      "sideGap": 32,
+      "contentWidth": 1216
+    },
+    {
+      "width": 1920,
+      "route": "/my-profile",
+      "sideGap": 48,
+      "contentWidth": 1824
+    },
+    {
+      "width": 390,
+      "route": "/my-profile",
+      "sideGap": 0,
+      "contentWidth": 390
+    }
+  ],
+  "errors": []
+}
