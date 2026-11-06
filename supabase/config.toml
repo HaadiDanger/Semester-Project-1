@@ -1,0 +1,73 @@
+project_id = "iust-connect-local"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 100
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = false
+
+[studio]
+enabled = true
+port = 54323
+
+[local_smtp]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "5MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/auth/callback", "http://localhost:5173/recover-account", "http://127.0.0.1:5173/auth/callback", "http://127.0.0.1:5173/recover-account"]
+jwt_expiry = 3600
+enable_signup = true
+minimum_password_length = 12
+
+[auth.email]
+enabled = true
+double_confirm_changes = true
+enable_confirmations = true
+max_frequency = "1m"
+otp_expiry = 3600
+
+[auth.rate_limit]
+email_sent = 20
+
+# npm run email:setup enables Gmail through ignored supabase/.env.local.
+# Supabase CLI 3 reads SUPABASE_AUTH_EMAIL_SMTP_* overrides from that file.
+[auth.email.smtp]
+enabled = false
+host = "smtp.gmail.com"
+port = 587
+sender_name = "IUST Orbit"
+
+[auth.email.template.confirmation]
+subject = "Confirm your IUST Orbit account"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your IUST Orbit password"
+content_path = "./supabase/templates/recovery.html"
+
+[functions.asset-gateway]
+verify_jwt = false
+entrypoint = "./functions/asset-gateway/index.js"
+import_map = "./functions/deno.json"
+static_files = ["./functions/_shared/magick.wasm"]
+
+[functions.asset-cleanup]
+verify_jwt = false
+entrypoint = "./functions/asset-cleanup/index.js"
+import_map = "./functions/deno.json"

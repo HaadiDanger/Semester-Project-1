@@ -1,0 +1,122 @@
+import { test, expect } from "@playwright/test"
+import { createBrowserBackend } from "./backend.mjs"
+import { rpc } from "../helpers/database.mjs"
+import { createCafeMenuImportSQL, loadCafeMenu } from "../../scripts/lib/cafe-menu-import.mjs"
+
+// Actual application SQL and committed photograph bytes; HTTP/Auth are explicitly doubled.
+let backend
+test.beforeAll(async () => {
+  backend = await createBrowserBackend()
+  const instanceId = (await backend.db.query("select instance_id from private.instance_config")).rows[0].instance_id
+  await backend.db.exec(createCafeMenuImportSQL({ ...await loadCafeMenu(), instanceId }))
+})
+test.afterAll(async () => { await backend?.close() })
+test.beforeEach(async ({ context, page }) => {
+  backend.errors.length = 0; backend.failNext.clear(); backend.beforeReply = null
+  await backend.attach(context)
+  page.on("pageerror", error => backend.errors.push(error.message))
+})
+test.afterEach(() => { expect(backend.errors).toEqual([]) })
+
+for (const width of [360, 1440]) {
+  test(`[mocked API] NESCAFÉ’s 30 menu-board prices, real local photographs and credits render at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 1000 })
+    await page.goto("/canteen-prices")
+    await expect(page.getByRole("heading", { name: "NESCAFÉ IUST", exact: true })).toBeVisible()
+    await expect(page.locator(".menu-card")).toHaveCount(30)
+    await expect(page.locator(".menu-card").filter({ has: page.getByRole("heading", { name: "Chicken Burger", exact: true }) })).toContainText("₹80")
+    await expect(page.locator(".menu-card").filter({ has: page.getByRole("heading", { name: "Tea", exact: true }) })).toContainText("₹15")
+    for (const image of await page.locator(".menu-card img").all()) await image.scrollIntoViewIfNeeded()
+    await expect.poll(() => page.locator(".menu-card img,.cafe-cover > img").evaluateAll(images => images.length === 31 && images.every(image => image.complete && image.naturalWidth > 0))).toBe(true)
+    const card = page.locator(".menu-card").first()
+    await card.locator("summary").click()
+    await expect(card.locator(".menu-photo-credit a").first()).toHaveAttribute("href", /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/)
+    await expect(card.locator(".menu-photo-credit a").last()).toHaveAttribute("href", /^https:/)
+    await expect(card).toContainText("Illustrative photo")
+    await page.locator(".menu-source-details summary").click()
+    await expect(page.locator(".menu-source-details")).toContainText("capture date was not supplied")
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }))
+    await page.screenshot({ path: testInfo.outputPath(`nescafe-menu-${width}.png`), fullPage: true })
+  })
+}
+
+test("[mocked API] café category, search, budget and ordering filters survive reload and recover from no matches", async ({ page }) => {
+  await page.goto("/canteen-prices")
+  await expect(page.locator(".menu-card")).toHaveCount(30)
+  await page.getByRole("button", { name: /^Hot beverages/ }).click()
+  await expect(page.locator(".menu-card")).toHaveCount(5)
+  await page.getByRole("searchbox", { name: "Search café menu" }).fill("tea")
+  await expect(page.locator(".menu-card")).toHaveCount(1)
+  await expect(page.locator(".menu-card")).toContainText("₹15")
+  await page.reload()
+  await expect(page.locator(".menu-card")).toHaveCount(1)
+  await expect(page.getByRole("searchbox", { name: "Search café menu" })).toHaveValue("tea")
+  await page.getByRole("button", { name: "Clear filters", exact: true }).click()
+  await page.getByRole("button", { name: "₹50 & under", exact: true }).click()
+  await expect(page.locator(".menu-card")).toHaveCount(12)
+  await page.getByLabel("Sort by").selectOption("highest")
+  await expect(page.locator(".menu-card-price").first()).toHaveText("₹50")
+  await page.getByRole("searchbox", { name: "Search café menu" }).fill("No such campus snack")
+  await expect(page.getByText("No bites found just yet.")).toBeVisible()
+  await page.getByRole("button", { name: "Reset menu filters" }).click()
+  await expect(page.locator(".menu-card")).toHaveCount(30)
+})
+
+test("[mocked API] database retry and unavailable-image fallback keep source-labelled prices usable", async ({ page }) => {
+  backend.failNext.set("get_canteen_menu", 1)
+  await page.route("**/images/menu/chicken-burger.webp", route => route.abort("failed"))
+  await page.goto("/canteen-prices")
+  await expect(page.getByRole("alert")).toContainText("simulated database outage")
+  await page.getByRole("button", { name: "Try again", exact: true }).click()
+  await expect(page.locator(".menu-card")).toHaveCount(30)
+  const card = page.locator(".menu-card").first()
+  await expect(card).toContainText("Photo unavailable")
+  await expect(card).toContainText("₹80")
+  await expect(card).toContainText("Menu-board price")
+})
+
+test("[mocked API] comparison mode requires verified exact portions rather than treating the photographed menu as a comparison", async ({ page }) => {
+  await page.goto("/canteen-prices")
+  await page.getByRole("link", { name: "Compare prices", exact: true }).click()
+  await expect(page.getByRole("heading", { name: "Compare like for like." })).toBeVisible()
+  await page.getByRole("combobox", { name: /^Canteen/ }).selectOption({ label: "NESCAFÉ IUST" })
+  await expect(page.locator(".price-card").first()).toContainText("Check needed")
+  await page.getByLabel("Max INR", { exact: true }).fill("120")
+  await expect(page.locator(".price-card")).toHaveCount(0)
+  await expect(page.getByText("Nothing on this menu yet.")).toBeVisible()
+  await page.getByRole("link", { name: "Café menus", exact: true }).click()
+  await expect(page.locator(".menu-card")).toHaveCount(30)
+})
+
+test("[mocked API] administrator maintains menu publication and explicitly republishes a replacement price", async ({ page }) => {
+  await page.goto("/sign-in?next=%2Fadmin%3Fsection%3Dprices")
+  await page.getByLabel("Email address", { exact: true }).fill(backend.admin.email)
+  await page.getByLabel("Password", { exact: true }).fill(backend.admin.password)
+  await page.getByRole("button", { name: "Sign in", exact: true }).click()
+  await expect(page).toHaveURL(/\/admin\?section=prices$/)
+  await page.getByRole("searchbox", { name: "Search administration records" }).fill("Chicken Burger")
+  await expect(page.locator(".admin-table tbody tr")).toHaveCount(1)
+  await page.getByRole("button", { name: "Manage price", exact: true }).click()
+  const publication = page.getByRole("region", { name: "Café menu publication" })
+  await expect(publication).toContainText("This item is on the public café menu")
+  await expect(page.locator(".history-record")).toContainText("Imported by cafe-menu-import-cli")
+  await page.getByLabel("Publish the current menu-board price", { exact: true }).uncheck()
+  await page.getByLabel("Publication change reason").fill("Temporarily hide the browser-test menu entry.")
+  await page.getByRole("button", { name: "Save menu listing", exact: true }).click()
+  await expect(publication).toContainText("This item is currently hidden")
+  expect((await rpc(backend.db, null, "get_canteen_menu", { p_filters: { query: "Chicken Burger" } })).total).toBe(0)
+  await page.getByLabel("INR amount").fill("99")
+  await page.getByLabel("Source details / reason").fill("Replacement amount in disposable browser database only.")
+  await page.getByRole("button", { name: "Append history event" }).click()
+  await expect(page.locator(".history-record")).toHaveCount(2)
+  await expect(publication).toContainText("Latest recorded price: ₹99")
+  await expect(page.getByLabel("Publish the current menu-board price", { exact: true })).not.toBeChecked()
+  await page.getByLabel("Publish the current menu-board price", { exact: true }).check()
+  await page.getByLabel("Publication change reason").fill("Publish the explicitly reviewed replacement in the test database.")
+  await page.getByRole("button", { name: "Save menu listing", exact: true }).click()
+  await expect(publication).toContainText("This item is on the public café menu")
+  const menu = await rpc(backend.db, null, "get_canteen_menu", { p_filters: { query: "Chicken Burger" } })
+  expect(menu.items[0].amount).toBe(99)
+  expect((await rpc(backend.db, null, "get_canteen_menu", { p_filters: { query: "Chicken Burger", budget: "80" } })).total).toBe(0)
+})

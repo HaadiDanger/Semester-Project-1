@@ -1,5 +1,7 @@
 # Verification — 6 October 2026
 
+Historical prototype results. Current Supabase, IUST Orbit and café verification is recorded in [the implementation report](docs/implementation-report.md).
+
 - Production build: passed.
 - Lint: passed with the pre-existing Fast Refresh warning in AppContext.jsx (useApp and AppProvider share a module).
 - Chromium browser checks: passed with no page errors.

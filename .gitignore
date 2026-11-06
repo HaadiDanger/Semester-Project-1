@@ -11,6 +11,17 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+!.env.example
+.supabase/
+supabase/.temp/
+supabase/.branches/
+playwright-report/
+test-results/
+.dev-seed/
+coverage/
+supabase/functions/_shared/magick.wasm
 
 # Editor directories and files
 .vscode/*

@@ -1,0 +1,67 @@
+{
+  "key": "nescafe-iust",
+  "name": "NESCAFÉ IUST",
+  "location": "IUST campus",
+  "description": "Coffee between classes. Burgers with friends. A bowl of Maggi for the long afternoon. Explore the IUST branch’s menu, one craving at a time.",
+  "cover_photo_key": "cappuccino",
+  "currency": "INR",
+  "source": {
+    "label": "User-supplied menu-board photograph · NESCAFÉ | IUST BRANCH",
+    "received_on": "2026-11-06",
+    "observed_on": null,
+    "photo_sha256": "6a8d8097c301a8c9a1c50ae36b93927ce5700de491f521bf6b3a31dd7385f77d",
+    "note": "Transcribed from the supplied NESCAFÉ | IUST BRANCH photograph. Capture date, serving sizes, hours, and current availability were not supplied."
+  },
+  "sections": [
+    {
+      "name": "Burgers, sandwiches & snacks",
+      "items": [
+        { "name": "Chicken Burger", "price": 80, "photo_key": "chicken-burger" },
+        { "name": "Veg. Burger", "price": 60, "photo_key": "veg-burger" },
+        { "name": "Veg. Sandwich", "price": 70, "photo_key": "veg-sandwich" },
+        { "name": "Chicken Sandwich", "price": 80, "photo_key": "chicken-sandwich" },
+        { "name": "Chicken Popcorn", "price": 120, "photo_key": "chicken-popcorn" },
+        { "name": "Chicken Nuggets", "price": 120, "photo_key": "chicken-nuggets" },
+        { "name": "Veg. Momos", "price": 100, "photo_key": "veg-momos" },
+        { "name": "Chicken Momos", "price": 120, "photo_key": "chicken-momos" },
+        { "name": "Veg. Aloo Tikki", "price": 90, "photo_key": "aloo-tikki" },
+        { "name": "Piri Piri Fries", "price": 60, "photo_key": "piri-piri-fries" },
+        { "name": "Cheese Fries", "price": 90, "photo_key": "cheese-fries" },
+        { "name": "Garlic Bread", "price": 120, "photo_key": "garlic-bread" },
+        { "name": "K.F.C Style Burger", "price": 100, "photo_key": "kfc-style-burger" },
+        { "name": "Walnut Brownie", "price": 80, "photo_key": "walnut-brownie" }
+      ]
+    },
+    {
+      "name": "Cold beverages",
+      "items": [
+        { "name": "Cold Coffee", "price": 70, "photo_key": "cold-coffee" },
+        { "name": "Cold Chocolate", "price": 70, "photo_key": "cold-chocolate" },
+        { "name": "Iced Tea Lemon", "price": 60, "photo_key": "iced-tea-lemon" }
+      ]
+    },
+    {
+      "name": "Hot beverages",
+      "items": [
+        { "name": "Cappuccino", "price": 30, "photo_key": "cappuccino" },
+        { "name": "Cafe Latte", "price": 30, "photo_key": "cafe-latte" },
+        { "name": "Cafe Mocha", "price": 30, "photo_key": "cafe-mocha" },
+        { "name": "Hot Chocolate", "price": 30, "photo_key": "hot-chocolate" },
+        { "name": "Tea", "price": 15, "photo_key": "tea" }
+      ]
+    },
+    {
+      "name": "Noodles & pasta",
+      "items": [
+        { "name": "Plain Maggi", "price": 30, "photo_key": "plain-maggi" },
+        { "name": "Korean Maggi", "price": 70, "photo_key": "korean-noodles" },
+        { "name": "Garlic Maggi", "price": 50, "photo_key": "garlic-maggi" },
+        { "name": "Masala Maggi", "price": 50, "photo_key": "masala-maggi" },
+        { "name": "Mushroom Pasta", "price": 50, "photo_key": "mushroom-pasta" },
+        { "name": "Tomato Pasta", "price": 50, "photo_key": "tomato-pasta" },
+        { "name": "Masala Pasta", "price": 50, "photo_key": "masala-pasta" },
+        { "name": "Cheese Macaroni", "price": 50, "photo_key": "cheese-macaroni" }
+      ]
+    }
+  ]
+}

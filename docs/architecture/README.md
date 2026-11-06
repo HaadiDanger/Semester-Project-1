@@ -1,5 +1,7 @@
 # IUST Connect — repository audit and implementation architecture
 
+Historical architecture baseline. See [the implementation report](../implementation-report.md) for the implemented IUST Orbit application and current verification.
+
 **Review date:** 3 November 2026
 
 **Source baseline:** `749d448021be6002037c5a25cf865eea422c54ca`
