@@ -8,7 +8,7 @@ export default defineConfig({
     fs: {
       // Keep Vite's default denials and protect generated local operator credentials.
       deny: ['.env', '.env.*', '*.{crt,pem,key,p12,pfx,cer,der}', '.npmrc', '.yarnrc.yml', '**/.git/**',
-        '**/.dev-seed/**', '**/.supabase/**', '**/supabase/.temp/**', '**/supabase/.branches/**'],
+        '**/.dev-seed/**', '**/.profile-imports/**', '**/.supabase/**', '**/supabase/.temp/**', '**/supabase/.branches/**'],
     },
   },
   build: {

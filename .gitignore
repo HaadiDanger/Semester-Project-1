@@ -20,6 +20,7 @@ supabase/.branches/
 playwright-report/
 test-results/
 .dev-seed/
+.profile-imports/
 coverage/
 supabase/functions/_shared/magick.wasm
 

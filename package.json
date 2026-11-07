@@ -16,6 +16,7 @@
     "email:setup": "node scripts/setup-email.mjs",
     "menu:photos": "node scripts/prepare-menu-photos.mjs",
     "menu:import": "node scripts/import-cafe-menu.mjs",
+    "profile:import": "node scripts/import-profile.mjs",
     "seed:dev": "node scripts/seed-dev.mjs",
     "cleanup:dev": "node scripts/cleanup-dev.mjs"
   },

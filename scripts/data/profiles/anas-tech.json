@@ -1,0 +1,28 @@
+{
+  "key": "anas-tech",
+  "id": "75cbf346-a3b7-4e17-b9e8-7dbd52f7293e",
+  "display_name": "Anas Tech",
+  "placeholder_email": "anas.tech.b88010@example.invalid",
+  "bio": "I build responsive websites, explore useful software, and turn everyday ideas into practical digital projects. Always learning, troubleshooting, and looking for the next tech challenge.",
+  "about": "Hi, I'm Anas Tech. I enjoy working at the intersection of technology and creativity: designing clean web interfaces, experimenting with digital tools, and finding simpler ways to get things done. This is my space to share what I'm learning, connect with other makers, and grow ideas into useful projects.",
+  "services": "Website setup, frontend interfaces, everyday tech troubleshooting, and exploring digital tools for small projects.",
+  "interests": ["Web development", "UI design", "Automation", "New technology"],
+  "skills": [
+    { "name": "Frontend development", "category": "Technology" },
+    { "name": "Technical troubleshooting", "category": "Technology" },
+    { "name": "Digital tools", "category": "Technology" }
+  ],
+  "photo": {
+    "id": "42354201-2f11-4c84-9291-8d5a343bd9e4",
+    "file": "anas-tech.webp",
+    "sha256": "b8cb511c86062678a6b84a1ba143e257d8e22815d409f713a8e7c79baa3c71b1",
+    "width": 888,
+    "height": 1280,
+    "byte_size": 134518
+  },
+  "source": {
+    "received_on": "2026-11-07",
+    "original_photo_sha256": "bfd1a60a76bce0bdde9e1e61d331cefbe356dcce3c78eca2472d840b9aee3729",
+    "note": "Name and original portrait supplied by the repository owner, who requested a public website profile, tech-focused copy, and a temporary email. Academic details and completed projects were not supplied."
+  }
+}

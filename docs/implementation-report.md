@@ -1,12 +1,24 @@
 # IUST Orbit implementation report
 
-**Latest update: 6 November 2026.** **NESCAFÉ IUST** is the first campus café, with **30 database-backed menu listings and 30 real food photographs**. All **68 Node tests and 28 Chromium checks** passed, as did lint and the production build. All **seven migrations** are applied to the real local Supabase instance. The live menu is at **http://localhost:5173/canteen-prices**.
+**Latest update: 7 November 2026.** **[Anas Tech](profiles.md)** is now in the directory with the user-supplied portrait and tech-focused copy. All **72 Node tests**, lint and the production build passed; the live profile passed desktop/mobile, photo, sign-in and repeat-import checks. All **eight migrations** are applied to the real local Supabase instance. The last full Chromium regression suite passed **28/28** on 6 November. **NESCAFÉ IUST’s 30-item menu** remains at **http://localhost:5173/canteen-prices**.
 
 **Branding:** Header/footer, orbit icon/favicon, browser metadata, package name, authentication emails and setup messages now use **IUST Orbit**. Visual inspection at 360px and 1440px confirmed the name, icon, home labels and browser title. Local Supabase serves the branded confirmation/recovery templates. Password login remains enabled; Gmail activation is paused pending the owner’s sending address and Google app password through `npm run email:setup`.
 
 **Earlier platform handoff (4 November):** The first six migrations applied on PostgreSQL 17.11 and 45 labelled sample profiles were loaded. Real Auth/PostgREST/Storage/Edge integration, ordinary signup/local confirmation, profile/portfolio uploads, two-context persistence and password recovery passed. The café update below adds genuine menu records while preserving that profiles-only fixture scope.
 
 Delivery branch: [`feat/supabase-campus-platform`](https://github.com/HaadiDanger/Semester-Project-1/tree/feat/supabase-campus-platform). Database, Auth, Storage and Edge operations described below occurred on the positively identified local stack. GitHub source publication does not deploy the app or populate a hosted database.
+
+## Anas Tech profile (7 November 2026)
+
+- Recovered and visually matched the original supplied portrait. The checked-in WebP is auto-oriented, metadata-stripped, **888 × 1280**, **134,518 bytes**; original and normalized hashes are recorded in the [profile manifest](../scripts/data/profiles/anas-tech.json).
+- Added the requested name, tech introduction, services/interests, three technology skills and a non-deliverable temporary login email. Programme and semester fields are empty, with no invented completed projects or public contact links.
+- Added the local, instance-bound `profile:import` command and operator-attribution migration. The ordinary Auth account receives no administrator role; directory approval and the single `profile.import` audit identify `github:HaadiDanger` as the operator. Later normal edits and eligibility decisions clear stale operator attribution.
+- Applied `202611070001_operator_profile_imports.sql` and imported into instance `43bbe85a-f1a8-403a-8776-ee2a5a57d87f`. Existing full-row digests for **48 Auth accounts, 45 profiles and 30 published menu listings** were unchanged. The resulting inventory is **49 Auth accounts and 46 profiles**, with one imported portrait in private profile media.
+- Real anonymous discovery returned one matching profile. The live discovery card and detail page passed at **360px and 1440px** without overflow or page/HTTP errors. Browser-loaded image bytes matched the committed SHA-256 exactly. Desktop/mobile screenshots were visually reviewed; the in-app browser also displayed the profile and portrait with no console errors.
+- Temporary sign-in, populated owner-editor reload, sign-out and subsequent anonymous photo/profile reads passed. A matching CLI rerun preserved full-row fingerprints for the new account, profile, controls, skill links, moderation, asset, Storage object and audit, plus the generated credentials.
+- All **72/72 Node tests**, lint and production build passed. Four direct/raw/URL-module/absolute-path credential-file requests returned **403**. SQL lint retained **27 warnings and no errors**. Sanitized live evidence is in ignored `.profile-imports/live-verification.json`, with desktop/mobile screenshots alongside it.
+
+See [profile setup and maintenance](profiles.md) for the profile link, repeatable import and local credentials location.
 
 ## Café menu update (6 November 2026)
 
@@ -75,7 +87,7 @@ Authentication uses Supabase JS `2.118.0`; the database rechecks account status 
 
 ## 3. Database and configuration execution
 
-Seven ordered migrations replay successfully in **disposable PGlite databases**, using minimal Auth/Storage schemas and PostgreSQL roles supplied by `tests/helpers/database.mjs`. The first six applied during fresh real Supabase startup on 4 November; the café migration applied to the populated instance on 6 November:
+Eight ordered migrations replay successfully in **disposable PGlite databases**, using minimal Auth/Storage schemas and PostgreSQL roles supplied by `tests/helpers/database.mjs`. The first six applied during fresh real Supabase startup on 4 November; the café migration applied to the populated instance on 6 November and the profile-import migration on 7 November:
 
 | Migration | Scope |
 | --- | --- |
@@ -86,6 +98,7 @@ Seven ordered migrations replay successfully in **disposable PGlite databases**,
 | `202611030005_private_storage.sql` | Private buckets, quarantine policy, authorization/processing/reconciliation and cleanup RPCs. |
 | `202611030006_development_fixture_controls.sql` | Service-only fixture registration, inventory and exact-batch cleanup. |
 | `202611060001_cafe_menus.sql` | Curated photo metadata, operator-attributed prices, source-labelled menu reads and versioned publication. |
+| `202611070001_operator_profile_imports.sql` | Operator-attributed eligibility/profile approval and attribution reset on later edits/decisions. |
 
 Migration SHA-256 values at handoff:
 
@@ -97,11 +110,12 @@ cd63da8bcae537595e7cf3195afb7179e710f1f4fcfc918973c8a3d5425cd63d  202611030003_a
 eff88ed6fafdb6b89becf392568ccbba9f3ca42b1bd097d6692104c898ee2554  202611030005_private_storage.sql
 6518faa139232affa7db39545e4cc5b67bff778cdacdbc4e7799a6d09287bccb  202611030006_development_fixture_controls.sql
 e4aaed894943a820b2f62660731812456858710cc358dd303be6b9a7c8dc1863  202611060001_cafe_menus.sql
+2802862bb5c6b187418602465978cdf354ef1025c9c150654041194b60960537  202611070001_operator_profile_imports.sql
 ```
 
 The local configuration targets `iust-connect-local`, API port `54321`, PostgreSQL 17 on `54322`, Studio `54323` and local mail `54324`. The database itself starts `production`, seed-disabled, with manual eligibility and 30-day freshness even on a local installation. Migrations contain no official academic catalogue, student fixtures or genuine prices.
 
-On 3 November, no container runtime was available. On 4 November, the user started Docker Desktop; inspection confirmed a local `desktop-linux` engine, free project ports and no prior Supabase containers/volumes. CLI `3.0.0` started a fresh stack on **PostgreSQL 17.11**. After the 6 November café upgrade, migration history matches all seven files; their current hashes are recorded above.
+On 3 November, no container runtime was available. On 4 November, the user started Docker Desktop; inspection confirmed a local `desktop-linux` engine, free project ports and no prior Supabase containers/volumes. CLI `3.0.0` started a fresh stack on **PostgreSQL 17.11**. After the 6 November café and 7 November profile-import upgrades, migration history matches all eight files; their current hashes are recorded above.
 
 The real local instance UUID is **`43bbe85a-f1a8-403a-8776-ee2a5a57d87f`**, API `http://127.0.0.1:54321`, database container `supabase_db_iust-connect-local`. Instance-bound operator SQL enabled development fixtures following the user's request for sample profiles. `npm run connect:local` verified this UUID and generated ignored `.env.local` and `.env.functions.local` without printing keys. Vite runs at `http://localhost:5173`; local mail is at `http://127.0.0.1:54324`. Image functions are served with the generated function environment. No hosted project was positively identified or approved for writes.
 
@@ -135,7 +149,7 @@ Real profile fixture execution passed. The credential/progress file is ignored `
 
 | Command | Outcome | Evidence boundary |
 | --- | --- | --- |
-| `npm test` (6 Nov, final) | Exit 0; **68/68 passed**, including ten café checks and four Gmail setup checks. | Real application SQL/image processing and committed photo bytes, with explicit Auth/Storage/SMTP doubles. |
+| `npm test` (7 Nov, final) | Exit 0; **72/72 passed**, including four profile-import, ten café and four Gmail setup checks. | Real application SQL/image processing and committed photo bytes, with explicit Auth/Storage/SMTP doubles. |
 | `npm run test:browser` (6 Nov, final) | Exit 0; **28/28 passed**, approximately 1.9 minutes, zero retries. | Actual React/Supabase JS frontend with intercepted HTTP/Auth/Storage backed by PGlite; six café checks included. |
 | Real local email/browser check (6 Nov) | Account flows passed; exact-account/mail cleanup subsequently completed. | Actual Supabase Auth, PKCE, confirmation/resend/recovery templates and Mailpit; external Gmail remains pending. |
 | `npm test` (3 Nov) | Exit 0; **54/54 passed** across nine files. | Actual application SQL in PGlite, actual image decoder, explicit service doubles. |
@@ -146,13 +160,16 @@ Real profile fixture execution passed. The credential/progress file is ignored `
 | `npm run edge:prepare` | Succeeded; pinned WASM prepared and loaded by the real local Edge runtime. | Hosted packaging/deployment remains untested. |
 | `git -c core.autocrlf=false diff --check` | Exit 0. | Tracked diff whitespace. |
 | `npm run test:integration -- --confirm=exercise-local-fixtures` | Exit 0 on 4 Nov. | Real Auth sessions, PostgREST ownership/privacy, portfolios/moderation, Storage denials and Edge normalization/streaming. Canteen checks explicitly skipped for profiles-only. |
-| `npx supabase start` / `migration up` / `migration list` | Fresh startup and populated café upgrade passed; all seven migration IDs match. | Real PostgreSQL 17.11 and managed local Auth/Storage schemas; account/profile digests preserved. |
+| `npx supabase start` / `migration up` / `migration list` | Fresh startup and populated café/profile-import upgrades passed; all eight migration IDs match. | Real PostgreSQL 17.11 and managed local Auth/Storage schemas; existing account/profile digests preserved. |
+| `npm run profile:import -- --instance … --operator github:HaadiDanger` (7 Nov) | Initial import and matching rerun passed; one profile/photo and one import audit. | Real Auth creation, private Storage upload, instance-bound operator SQL and anonymous PostgREST verification. |
+| One-off live profile Chromium check (7 Nov) | Discovery/detail passed at 360px and 1440px; exact image hash, sign-in/editor/reload/sign-out and repeat-import preservation passed. | Actual local application, Auth, PostgREST, Storage and Edge gateway; no mocked responses. |
 | `npm run menu:import -- --instance …` | Initial import and matching rerun passed; 30 published entries and one audit. | Real instance-checked SQL, committed photo hashes and real public PostgREST amounts/filter checks. |
 | One-off live café Chromium check (6 Nov) | Passed at 360px and 1440px; 30 cards, 31 loaded images, no overflow/errors; budget/sort/reload passed. | Real local application and PostgREST responses; requests restricted to those origins without response mocking. |
 | `npx supabase db lint --schema public,private --level warning --fail-on error` | Exit 0; **27 warnings, no errors**. | Warnings concern STABLE/VOLATILE helper calls and implicit text-to-JSONB initialization. |
 | One-off ordinary-account Chromium check (4 Nov) | Passed signup, local confirmation, draft/photo/portfolio save, reload, second browser context and password recovery. | Actual services; network interception allowed only the local application/API and did not supply mock responses. |
 | Real `asset-cleanup` invocations | **1/1**, then **2/2** completed. | All three test images removed; 0 remaining Storage objects and 3 metadata tombstones. |
 | Private development-file HTTP checks | **6/6 denied (403)**; application root still returns 200. | Fixture manifest, raw/encoded/absolute-path forms and both environment files. |
+| Private profile-import credential HTTP checks (7 Nov) | **4/4 denied (403)**. | Direct, raw, URL-module and absolute-path requests for the actual generated credentials. |
 
 ### Node coverage
 
@@ -162,6 +179,7 @@ Real profile fixture execution passed. The credential/progress file is ignored `
 | `tests/administration.test.mjs` | 7 | Separate role powers, self/last-holder protections, private notes, references/stages/merges/aliases, request handling and settings. |
 | `tests/canteen.test.mjs` | 7 | Current-first selection, complete-set minima/ties, unlike portions, zero/precision checks, stale/revoked/withdrawn states, conflicts and immutable history. |
 | `tests/cafe-import.test.mjs` | 3 | All 30 source prices/photo assets, atomic wrong-target/conflict rollback, idempotency and preservation of staff edits/withdrawals. |
+| `tests/profile-import.test.mjs` | 4 | Supplied portrait/discovery, private login, operator attribution, owner-edit/rerun preservation, atomic conflicts, shared-skill reuse and later eligibility changes. |
 | `tests/cafe-menu.test.mjs` | 7 | Empty/publication states, source/credit reads, filters/precision, current-first replacement, revocation/retirement, authorization/version checks and operator attribution. |
 | `tests/storage.test.mjs` | 7 | Owned expiring inserts, worker-only completion, private pointers/audiences, retained historical evidence, cleanup leases and revoked/pending/removed/deletion upload restrictions. |
 | `tests/images.test.mjs` | 5 | Real PNG/JPEG/WebP decoding, resize, orientation, metadata stripping/digest and malformed/animated/oversized rejection. |
@@ -227,7 +245,7 @@ Keyboard checks cover the skip link, mobile navigation, dialog Tab/Shift+Tab con
 | Privacy edits | Audience changes use aggregate saving and return the profile to a hidden draft for review. This prevents unreviewed publication but differs from the proposed approval-preserving privacy-only mutation. Unpublish provides immediate public withdrawal. |
 | Portfolio ordering | Array order is persisted and IDs survive add/remove edits. The editor has no reorder control, so UI reorder acceptance is incomplete. |
 | Fixture states | All 45 initial profiles are published for development discovery. Other moderation states are tested in disposable suites rather than included in the initial seed. |
-| Current local data | 45 profiles-only fixtures plus the genuine 30-item NESCAFÉ menu. Genuine accounts can save drafts/photos/portfolios; profile publication still awaits genuine academic/skill references and independent eligibility/content review. |
+| Current local data | Anas Tech’s owner-requested profile/portrait, 45 profiles-only fixtures and the genuine 30-item NESCAFÉ menu. Three technology skills are available; normal profile submission still requires official academic references and independent eligibility/content review. |
 | Café source scope | Menu-board prices are publicly browsable with credited illustrative photos. The original unknown capture date/portions/availability are not treated as verified comparison data. |
 | Audit and retention | Privileged decisions/evidence reads and owner deletion requests are audited. Ordinary draft saves use versions/receipts without an audit event. General Auth/report/audit/receipt purge jobs are not installed. Profile deletion retains the Auth account. |
 | Upload capacity | 40 reservations per rolling 24 hours and 30 live assets per account. Retained historical evidence counts toward the live cap and cannot be deleted as an orphan; sustained administrator evidence entry needs a reviewed capacity/retention change. |

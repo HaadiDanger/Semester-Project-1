@@ -6,7 +6,7 @@ The original charcoal, mint and lavender design, fluid desktop proportions, two-
 
 ## Run the local application
 
-The local setup, verified on **6 November 2026**, has **45 labelled sample profiles** and **NESCAFÉ IUST’s 30-item menu**. Café names, menu items and prices are stored in Supabase, alongside profile/photo/portfolio data. Keep Docker Desktop running and use Node.js 24.
+The local setup, verified on **7 November 2026**, has **Anas Tech’s profile and supplied portrait**, **45 labelled sample profiles** and **NESCAFÉ IUST’s 30-item menu**. Café names, menu items and prices are stored in Supabase, alongside profile/photo/portfolio data. Keep Docker Desktop running and use Node.js 24.
 
 For this configured checkout, restart from the repository root. In one terminal:
 
@@ -24,11 +24,15 @@ npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 
 Open **http://localhost:5173**. Supabase retains the database between restarts. For a fresh checkout, run `npm ci` and follow **[Local Supabase setup](docs/setup.md)** to inspect the database and generate the ignored configuration with `npm run connect:local`.
 
+### Anas Tech profile
+
+**[Anas Tech](http://localhost:5173/student/75cbf346-a3b7-4e17-b9e8-7dbd52f7293e)** has the supplied portrait, a tech-focused introduction and three technology skills. The profile is stored in Supabase alongside the directory's existing entries. See **[profile setup](docs/profiles.md)** for the repeatable import, placeholder email and locally saved sign-in credentials.
+
 ### Browse NESCAFÉ IUST
 
 Open **http://localhost:5173/canteen-prices** for **30 items in four sections**, priced **₹15–₹120**, with category/search/budget filters and price sorting. Names and amounts were transcribed from the supplied menu-board photograph; all food photographs are real, credited illustrations served locally.
 
-The café is already imported in this checkout’s local database. On a fresh database, apply all seven migrations, inspect the instance UUID and run:
+The café is already imported in this checkout’s local database. On a fresh database, apply all migrations, inspect the instance UUID and run:
 
 ```sh
 npm run menu:import -- --cafe nescafe-iust --instance YOUR_INSPECTED_INSTANCE_UUID
@@ -47,7 +51,7 @@ Run **`npm run email:setup`** and enter your Gmail address and a [Google app pas
 3. Go to **My profile**, enter your name/bio, choose **Upload your photo**, and add portfolio entries/images as desired.
 4. Click **Save draft**, then **Preview saved profile**. JPEG, PNG and WebP are supported up to 5 MiB and 4096 px per side.
 
-Your draft and uploads can be saved now. Public publication requires genuine academic/skill references and independent eligibility/content review; those references are awaiting owner-supplied data. Sample accounts use initials, so use your own account for your profile photo.
+Your draft and uploads can be saved now. Normal public submission requires academic details and independent eligibility/content review; official programmes still await owner-supplied data. Sample accounts use initials, so use your own account for your profile photo.
 
 Browser configuration contains only the Supabase URL, publishable/legacy anonymous key and public application URL. Server keys and fixture passwords stay in ignored operator files; Vite denies HTTP access to those files.
 
@@ -84,13 +88,14 @@ npm run lint
 npm run build
 ```
 
-On **6 November**, all **68 Node tests and 28 Chromium checks** passed, along with lint and the production build. The real local database has all **seven migrations** applied; the café import and repeat import preserved existing accounts/profiles. Real PostgREST reads and the live menu at **360px and 1440px** passed with all 31 displayed images loaded and no horizontal overflow or page errors. SQL lint reported **27 warnings and no errors**.
+On **7 November**, all **72 Node tests**, lint and the production build passed. The real local database has all **eight migrations** applied. Anas Tech’s discovery card and profile passed live checks at **360px and 1440px**, including exact portrait-byte verification, sign-in, reload, sign-out, repeat-import preservation and private credential-file denial. SQL lint reported **27 warnings and no errors**. The last full Chromium regression suite passed **28/28** on **6 November**.
 
 Real local Auth/PostgREST/Storage/Edge integration, profile/portfolio persistence and confirmation/resend/password-recovery flows also passed. See the [implementation report](docs/implementation-report.md) for evidence and remaining acceptance work. Gmail activation remains paused pending sender credentials through `npm run email:setup`.
 
 ## Handoff documents
 
 - [Setup and local verification](docs/setup.md)
+- [Anas Tech profile and photo](docs/profiles.md)
 - [Café menus, imports and maintenance](docs/cafes.md)
 - [Gmail account-email setup](docs/email.md)
 - [Operations, moderation, retention, recovery and deployment](docs/operations.md)

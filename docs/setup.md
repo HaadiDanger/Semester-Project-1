@@ -1,6 +1,6 @@
 # IUST Orbit local setup and verification
 
-This guide describes the implemented application. The [implementation report](implementation-report.md) records which checks actually ran. As of **6 November 2026**, the real local Supabase stack has **seven applied migrations**, **45 labelled sample profiles**, and **NESCAFÉ IUST’s 30 published menu listings**. See [café setup and maintenance](cafes.md) for the import workflow.
+This guide describes the implemented application. The [implementation report](implementation-report.md) records which checks actually ran. As of **7 November 2026**, the real local Supabase stack has **eight applied migrations**, **Anas Tech’s profile and supplied portrait**, **45 labelled sample profiles**, and **NESCAFÉ IUST’s 30 published menu listings**. See [profile setup](profiles.md) and [café setup and maintenance](cafes.md) for the import workflows.
 
 ## 1. Prerequisites and application configuration
 
@@ -24,7 +24,7 @@ npm ci
 npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-Use `http://localhost:5173` consistently for this configuration. For fixed Auth callback URLs, start Vite with `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`. Restart Vite after changing environment values. Without valid configuration the UI shows a setup notice. `npm run build` writes `dist`; `npm run preview` serves that bundle locally. Vite blocks access to environment files, `.dev-seed/` and local Supabase operator metadata over HTTP.
+Use `http://localhost:5173` consistently for this configuration. For fixed Auth callback URLs, start Vite with `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`. Restart Vite after changing environment values. Without valid configuration the UI shows a setup notice. `npm run build` writes `dist`; `npm run preview` serves that bundle locally. Vite blocks access to environment files, `.dev-seed/`, `.profile-imports/` and local Supabase operator metadata over HTTP.
 
 ## 2. Start and inspect local Supabase
 
@@ -70,7 +70,7 @@ This helper verifies the local API and database instance, then writes only the i
 
 ### Migration inventory
 
-Apply all seven files in order from `supabase/migrations/`:
+Apply all eight files in order from `supabase/migrations/`:
 
 | File | Purpose |
 | --- | --- |
@@ -81,10 +81,11 @@ Apply all seven files in order from `supabase/migrations/`:
 | `202611030005_private_storage.sql` | Three private buckets, quarantine policy, image-access/processing and cleanup worker RPCs. |
 | `202611030006_development_fixture_controls.sql` | Service-only, instance-guarded fixture registration, inventory and targeted cleanup. |
 | `202611060001_cafe_menus.sql` | Source-labelled café listings, curated photo metadata, operator-attributed prices and versioned publication RPCs. |
+| `202611070001_operator_profile_imports.sql` | Operator-attributed directory approvals for owner-requested profile imports, with attribution reset on later edits/decisions. |
 
 Migrations insert no student fixtures, official academic catalogue or canteen prices. `private.instance_config` starts as `production`, `seed_enabled=false`, manual eligibility and a **30-day** freshness window. This is also the initial state on a local installation. Automatic SQL seeding is disabled.
 
-All seven files replay successfully in disposable PGlite databases. The first six applied on fresh local **PostgreSQL 17.11** startup; the café migration applied to that populated instance on 6 November while preserving all 48 Auth accounts and 45 profiles. Its migration history matches all seven files. Real `db lint` completed with **27 warnings and no errors**, concerning STABLE routines that call VOLATILE helpers and implicit text-to-JSONB initializers. Broader staged upgrades and restore drills remain unverified.
+All eight files replay successfully in disposable PGlite databases. The first six applied on fresh local **PostgreSQL 17.11** startup; the café migration applied on 6 November and the profile-import migration on 7 November. Both upgrades preserved the existing 48 Auth accounts and 45 profiles; the subsequent Anas Tech import added one account and profile. Migration history matches all eight files. Real `db lint` completed with **27 warnings and no errors**, concerning STABLE routines that call VOLATILE helpers and implicit text-to-JSONB initializers. Broader staged upgrades and restore drills remain unverified.
 
 ### Import the first café
 
@@ -97,6 +98,8 @@ npm run menu:import -- --cafe nescafe-iust --instance YOUR_INSPECTED_INSTANCE_UU
 The command loads the checked-in manifest and photographs into the configured local database and records one operator audit. The import is atomic; a matching rerun preserves existing records and staff changes. It is independent of development fixtures and administrator bootstrap. This checkout’s NESCAFÉ import has already completed. Open **http://localhost:5173/canteen-prices**; use [café maintenance](cafes.md) for subsequent changes or SQL export.
 
 ## 3. Serve the image functions
+
+The owner-requested **Anas Tech** profile uses these image functions. Its checked-in portrait and content are imported separately from sample fixtures; follow [Anas Tech profile setup](profiles.md) after applying the migrations.
 
 `npm run edge:prepare` copies the pinned decoder to ignored `supabase/functions/_shared/magick.wasm`. Run it after `npm ci` and before serving or deploying the gateway. The static WASM file is declared in `supabase/config.toml`; the Deno import map pins both dependencies.
 
@@ -149,7 +152,7 @@ The browser SDK uses **PKCE**, automatic callback detection and the `iust-connec
 3. Choose **Complete my profile**, enter your name and bio, and use **Upload your photo**. You can also add portfolio descriptions, links and images.
 4. Click **Save draft** and **Preview saved profile**. The draft and images survive reloads and signing in from another browser. Photo audience defaults to **Only me**.
 
-Use a separate ordinary account for your own photograph; sample accounts deliberately use initials. Genuine academic/skill references are not configured yet, so leave those choices blank and save a draft. Publication awaits source-backed reference data and independent eligibility/content review. Real local signup, confirmation, photo/portfolio uploads, two-context persistence and password recovery passed on 4 November.
+Use a separate ordinary account for your own photograph; sample accounts deliberately use initials. Official academic programmes are not configured yet, so leave those choices blank and save a draft. Normal publication awaits source-backed academic data and independent eligibility/content review. Real local signup, confirmation, photo/portfolio uploads, two-context persistence and password recovery passed on 4 November.
 
 ### Appoint the first administrator
 
@@ -262,7 +265,7 @@ npm run build
 
 These need no Supabase credentials or running database. The Node suites replay application SQL in PGlite with minimal Auth/Storage schemas. Image tests execute the real WASM decoder. Playwright launches controlled Vite servers on `4173` and `4174`; keep those ports free. HTTP/Auth/Storage are explicitly doubled and unexpected external requests are blocked. There is no application mock-data mode.
 
-The latest complete run on **6 November** passed **68 Node tests and 28 Chromium tests**, including import rollback/idempotency, published-menu filters, photo credits/fallbacks and administrator price replacement/republication. Lint and production build also passed.
+On **7 November**, all **72 Node tests**, lint and the production build passed, including four profile-import checks. The last full Chromium regression run on **6 November** passed **28 tests**, including published-menu filters, photo credits/fallbacks and administrator price replacement/republication.
 
 Browser results and screenshots are in ignored `playwright-report/` and `test-results/`. Open the report with `npx playwright show-report`. The reduced-motion test intentionally produces Motion's development warning about reduced motion.
 
@@ -281,5 +284,7 @@ The confirmed real integration run **passed on 4 November**, and its temporary i
 Run the cleanup worker after future integration checks. Fixture sign-in alone does not test email delivery; continue to exercise the real mailbox/browser flows after Auth configuration changes.
 
 The real café import was also checked on 6 November: 30 exact source amounts and photo records, one import audit after a matching rerun, unchanged account/profile hashes, anonymous administrator denial and comparison exclusion. The live menu passed at 360px and 1440px with 30 cards, 31 loaded images, working budget/sort/reload controls and no page/HTTP errors or horizontal overflow. These café checks used the real local PostgREST service; see [the café verification record](implementation-report.md#café-menu-update-6-november-2026).
+
+On **7 November**, the real Anas Tech import and matching rerun passed. Anonymous discovery/profile/photo reads, exact portrait-byte hashes, 360px/1440px layouts, temporary sign-in, owner-editor reload and sign-out all passed. Four credential-file HTTP requests returned 403. See [profile verification](profiles.md#verification-7-november-2026).
 
 For real fresh replay, staged upgrades, backup/restore and hosted setup, continue with [operations](operations.md).
