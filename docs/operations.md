@@ -82,11 +82,19 @@ The current local catalogue contains **BREW AND BRINK’s 29 published text-menu
 
 ### Published café menus
 
-`/canteen-prices` reads `get_canteen_menu`, which returns published genuine listings with café-specific sections, source types/labels, size variants and photo credits. `/canteen-prices?view=compare` uses the stricter comparison contract below. Supplied size labels are retained, but neither menu supplies an observation date or exact comparable quantity.
+`/canteen-prices` reads `get_canteen_menu`, which returns published genuine listings with café-specific sections, source types/labels, size variants and photo credits. `/canteen-prices?view=compare` reads `get_canteen_menu_comparisons` for two selected cafés. Supplied size labels are retained, and unknown serving quantities are identified in the comparison cards.
 
-In `/admin` → **Canteen prices** → **Manage price**, genuine administrators can set the public source label/type, known source date, curated photo, display order and publication state. Each save requires the current listing version and a reason. A replacement price hides the prior listing until the current amount is explicitly published. Withdrawal, verification revocation, catalogue retirement and unpublication also remove it. Menu browsing reports documented prices without an availability or freshness claim; comparison eligibility still requires all checks below.
+In `/admin` → **Canteen prices** → **Manage price**, genuine administrators can set the public source label/type, known source date, curated photo, display order and publication state. Each save requires the current listing version and a reason. A replacement price hides the prior listing until the current amount is explicitly published. Withdrawal, verification revocation, catalogue retirement and unpublication also remove it from menus and menu comparisons. These public views report documented menu amounts; the exact-portion verification API below applies its own freshness and availability checks.
 
 The importer attributes the initial prices to `cafe-menu-import-cli`, records an instance-bound manifest hash and creates no Auth account or role. Matching reruns leave staff changes intact; changed manifests are rejected after a completed import. Maintain later prices through append-only history and publication controls.
+
+### Published-menu comparison contract
+
+- `get_canteen_menu_comparisons` uses `private.published_canteen_menu` for both selected cafés. Only shared catalogue identities and currencies are paired; differently sized variants stay separate. Sample and unpublished offerings cannot enter this view.
+- The two amounts, lower-price flags and absolute difference are calculated within the selected pair before budget filtering and pagination. Other cafés cannot affect the pair's difference. Equal amounts mark both offers as **Same price**.
+- A budget retains an item when either café is within the limit, with both prices still returned. Categories use the shared catalogue category; search also includes each café's section and item label.
+- The RPC accepts `query`, `category`, `canteen`, `compare_with`, `budget`, `sort`, `page` and `page_size`. `lowest`/`highest` sort by the lower pair price; `difference` sorts by the largest absolute difference. Pages contain 12 items by default, bounded to 1–48.
+- Source labels, source types and known source dates accompany each public offer. The UI describes listed menu prices and explicitly identifies unknown serving quantities. It provides café selectors, swapping, filters, menu links, and empty/retry states.
 
 ### Enter a source-backed offering
 
@@ -99,15 +107,17 @@ The importer attributes the initial prices to `cafe-menu-import-cli`, records an
 
 Sample records require the `simulated` source method and display “Sample”/“Simulated verification.” NESCAFÉ’s supplied menu amounts are genuine source transcriptions, but no dated observation or exact serving sizes were supplied for comparison verification.
 
-### Comparison contract
+### Verified exact-portion API
+
+`get_canteen_prices` retains the verification-only contract for source-checked exact portions:
 
 - PostgreSQL selects the latest price event for each offering first, then the latest verification event for that price. It never falls back to an older cheap/verified price.
 - A qualifying offering is active and available, with a recent availability check, verified current price, ready evidence and an exact comparable portion.
 - Freshness applies to both actual observation and availability time, initially **30 days**, configurable to 1–90 in Settings. Recording an old observation today does not make it fresh. Timestamps strictly older than the window are stale.
 - Amounts are exact non-negative INR decimals with at most two decimal places; zero is valid. Exponents, NaN, negatives and extra precision are rejected.
 - Minima, ties and price differences use all eligible equivalent offerings in the selected query/category/canteen set, **before budget filtering and pagination**, partitioned by menu identity, currency and sample batch.
-- Missing, withdrawn, unavailable, unverified, revoked, stale, evidence-missing and unknown-portion rows do not qualify. Their public `amount` and difference are null. With a budget filter they are excluded entirely; without one the UI shows “Check needed.” Retired catalogue entries are omitted.
-- A single qualifying offering has no competitive cheapest claim in the UI. All lowest-price ties receive equal treatment when there are multiple comparable offerings.
+- Missing, withdrawn, unavailable, unverified, revoked, stale, evidence-missing and unknown-portion rows do not qualify. Their public `amount` and difference are null. With a budget filter they are excluded entirely; otherwise their status explains the exclusion. Retired catalogue entries are omitted.
+- `eligible_count` identifies how many equivalent offerings qualify. All lowest-price ties receive equal treatment.
 
 Corrections append a new price record referencing the current record. Withdrawal appends an event. Verification/revocation append their own events, retaining prior amounts, sources, actors and times privately. Version expectations reject stale decisions. Item comparison identity and offering identity cannot be rewritten after use. Private price/verification/audit history cannot be updated or deleted by the application; the guarded sample-batch cleanup is the narrow development exception.
 

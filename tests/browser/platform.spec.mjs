@@ -270,20 +270,14 @@ test("[mocked API] report dialog traps focus, cancels safely, restores focus and
   await expect(page.locator(".toast")).toHaveCount(0, { timeout: 4500 })
 })
 
-test("[mocked API] canteen comparisons label simulated evidence, ties, differences and current-first budget exclusions", async ({ page }) => {
+test("[mocked API] café comparisons exclude unpublished development-fixture prices", async ({ page }) => {
   await page.goto("/canteen-prices?view=compare&query=Tea")
-  await expect(page.locator(".price-card")).toHaveCount(3)
-  await expect(page.getByText("Lowest current price · 3 comparable offerings", { exact: true })).toHaveCount(2)
-  await expect(page.getByText(/above the lowest/)).toContainText("₹10")
-  await expect(page.getByText("Simulated verification", { exact: true })).toHaveCount(3)
+  await expect(page.getByRole("heading", { name: "A second café is needed." })).toBeVisible()
+  await expect(page.locator(".price-card")).toHaveCount(0)
   await page.getByLabel("Max INR", { exact: true }).fill("25")
-  await expect(page.locator(".price-card")).toHaveCount(2)
   await page.getByRole("searchbox", { name: "Search canteen items" }).fill("Lemon drink")
-  await expect(page.getByText("Nothing on this menu yet.")).toBeVisible()
-  await page.getByLabel("Max INR", { exact: true }).fill("")
-  await expect(page.locator(".price-card")).toHaveCount(1)
-  await expect(page.locator(".price-card")).toContainText("Check needed")
-  await expect(page.locator(".price-card")).toContainText("Excluded from cheapest-price comparisons")
+  await expect(page.locator(".results-meta")).toContainText("0 matching items")
+  await expect(page.getByRole("region", { name: "Compare café menus" })).not.toContainText("Simulated verification")
 })
 
 test("[mocked API] role-manager UI is separate and current backend revocation removes administrator access", async ({ page }) => {

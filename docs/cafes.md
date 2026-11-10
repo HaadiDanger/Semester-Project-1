@@ -40,7 +40,7 @@ Imported into the inspected local instance on **10 November 2026**, bringing the
 
 ## Import into local Supabase
 
-Complete [local setup](setup.md#2-start-and-inspect-local-supabase), including all nine migrations and database inspection. The menu import is independent of the optional sample-profile seed. The supplied WebP files are ready to use; no photo download is needed for a normal checkout.
+Complete [local setup](setup.md#2-start-and-inspect-local-supabase), including all ten migrations and database inspection. The menu import is independent of the optional sample-profile seed. The supplied WebP files are ready to use; no photo download is needed for a normal checkout.
 
 ```sh
 npx supabase migration list
@@ -81,7 +81,23 @@ Sign in as a genuine content administrator, then open `/admin` → **Canteen pri
 
 Publication is linked to one specific price event. Replacing it hides the prior public listing until staff explicitly publish the replacement. Withdrawal, a latest verification revocation, reference retirement or unpublication also remove the listing. Version checks prevent stale saves; reload and review the stored listing after a conflict. Historic prices remain in append-only private history.
 
-Menu browsing displays documented prices from the supplied photograph or text menu. Exact-portion comparisons are at `/canteen-prices?view=compare`; they require a known matching portion, current verified evidence and recent availability checks. Neither café's original unknown-quantity listings qualify automatically; a Small/Large label alone does not establish a comparable quantity. When confirmed serving sizes become available, create correctly identified comparison items/offerings using [source-backed catalogue entry](operations.md#enter-a-source-backed-offering); used comparison identities are immutable.
+## Compare published menu prices
+
+Open `/canteen-prices?view=compare`, choose **First café** and **Second café**, or use **Swap cafés**. The `get_canteen_menu_comparisons` RPC matches published offerings by shared catalogue identity and currency, preserving variants and any established portion identity. Choosing the other café in the first selector swaps the pair automatically. Café selection carries between menu and comparison views.
+
+The current menus share three items:
+
+| Item | Brew and Brink | NESCAFÉ IUST | Difference |
+| --- | ---: | ---: | ---: |
+| Cold Coffee | ₹110 | ₹70 | ₹40 |
+| Cheese Fries | ₹150 | ₹90 | ₹60 |
+| Chicken Popcorn | ₹130 | ₹120 | ₹10 |
+
+Search and category filters apply to matching items. A budget keeps a pair when either price meets the limit, retaining both amounts. Price ordering uses the lower price in each pair; **Largest difference** sorts by the absolute difference. Differences and totals are calculated before pagination. Filters and both café IDs persist in the URL; clearing filters retains the selected pair.
+
+These are **listed menu prices**. Unknown serving quantities are labelled, and actual portions and availability may differ. NESCAFÉ's unspecified Tea does not automatically match Brew and Brink's Small/Large variants. Fewer than two published café menus or no shared items produces an explanatory empty state.
+
+The existing `get_canteen_prices` API continues to require known equivalent portions, current verified evidence and recent availability checks. When confirmed serving sizes become available, use [source-backed catalogue entry](operations.md#enter-a-source-backed-offering); used comparison identities are immutable.
 
 ## Photograph provenance and updates
 
@@ -102,4 +118,4 @@ For an already imported café, keep existing photo keys, files and metadata stab
 
 Add one café at a time from its supplied source. Create a new `scripts/data/cafes/<key>.json` using either existing manifest, preserving exact names, amounts and any size variants. For a text source, set `source.kind` to `text` and retain the Markdown and its hash as Brew and Brink does. Record only known dates/location details. Choose credited real photographs, add their source records, prepare/review them and update the attribution document. Import with `--cafe <key>` and the inspected instance UUID. Compatible genuine categories/items can be reused; café-specific sections are stored on the listing rather than changing shared catalogue categories.
 
-The café chooser appears when more than one café has published listings. Run the relevant SQL/import/browser checks and verify that café’s names, prices, credits, filters and layout against the real local service before handoff. Current executed results are recorded in [the implementation report](implementation-report.md#brew-and-brink-menu-10-november-2026).
+The café chooser appears when more than one café has published listings. Run the relevant SQL/import/browser checks and verify that café’s names, prices, credits, filters and layout against the real local service before handoff. Current executed results are recorded in [the implementation report](implementation-report.md#café-comparison-fix-10-november-2026).

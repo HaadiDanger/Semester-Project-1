@@ -70,7 +70,7 @@ This helper verifies the local API and database instance, then writes only the i
 
 ### Migration inventory
 
-Apply all nine files in order from `supabase/migrations/`:
+Apply all ten files in order from `supabase/migrations/`:
 
 | File | Purpose |
 | --- | --- |
@@ -83,10 +83,11 @@ Apply all nine files in order from `supabase/migrations/`:
 | `202611060001_cafe_menus.sql` | Source-labelled café listings, curated photo metadata, operator-attributed prices and versioned publication RPCs. |
 | `202611070001_operator_profile_imports.sql` | Operator-attributed directory approvals for owner-requested profile imports, with attribution reset on later edits/decisions. |
 | `202611090001_cafe_menu_sources_and_sections.sql` | Text-menu provenance, café subtitles, café-specific sections and source-type publication controls. |
+| `202611100001_cafe_menu_comparisons.sql` | Published-menu comparisons for two cafés, matching identities, price differences, filters and pagination. |
 
 Migrations insert no student fixtures, official academic catalogue or canteen prices. `private.instance_config` starts as `production`, `seed_enabled=false`, manual eligibility and a **30-day** freshness window. This is also the initial state on a local installation. Automatic SQL seeding is disabled.
 
-All nine files replay successfully in disposable PGlite databases. The first six applied on fresh local **PostgreSQL 17.11** startup; the café migration applied on 6 November, the profile-import migration on 7 November, and the menu-source/section migration on 10 November. The latest upgrade and Brew and Brink import retained the existing 49 Auth accounts, 46 profiles and NESCAFÉ menu. Migration history matches all nine files. Real `db lint` completed with **27 warnings and no errors**, concerning STABLE routines that call VOLATILE helpers and implicit text-to-JSONB initializers. Broader staged upgrades and restore drills remain unverified.
+All ten files replay successfully in disposable PGlite databases. The first six applied on fresh local **PostgreSQL 17.11** startup; the café migration applied on 6 November, the profile-import migration on 7 November, and the menu-source/section and comparison migrations on 10 November. The Brew and Brink import retained the existing 49 Auth accounts, 46 profiles and NESCAFÉ menu. Migration history matches all ten files. Real `db lint` completed with **32 warnings and no errors**, concerning STABLE routines that call VOLATILE helpers and implicit text-to-JSONB initializers. Broader staged upgrades and restore drills remain unverified.
 
 ### Import the café menus
 
@@ -97,7 +98,7 @@ npm run menu:import -- --cafe nescafe-iust --instance YOUR_INSPECTED_INSTANCE_UU
 npm run menu:import -- --cafe brew-and-brink --instance YOUR_INSPECTED_INSTANCE_UUID
 ```
 
-Each command loads the selected manifest and photographs into the configured local database and records one operator audit. The import is atomic; a matching rerun preserves existing records and staff changes. It is independent of development fixtures and administrator bootstrap. Both imports have completed in this checkout. Open **http://localhost:5173/canteen-prices** and use **Choose café**; see [café maintenance](cafes.md) for subsequent changes or SQL export.
+Each command loads the selected manifest and photographs into the configured local database and records one operator audit. The import is atomic; a matching rerun preserves existing records and staff changes. It is independent of development fixtures and administrator bootstrap. Both imports have completed in this checkout. Open **http://localhost:5173/canteen-prices** and use **Choose café**, or open **Compare prices** for the two cafés' matching published items. See [café maintenance](cafes.md) for subsequent changes or SQL export.
 
 ## 3. Serve the image functions
 
@@ -267,7 +268,7 @@ npm run build
 
 These need no Supabase credentials or running database. The Node suites replay application SQL in PGlite with minimal Auth/Storage schemas. Image tests execute the real WASM decoder. Playwright launches controlled Vite servers on `4173` and `4174`; keep those ports free. HTTP/Auth/Storage are explicitly doubled and unexpected external requests are blocked. There is no application mock-data mode.
 
-On **7 November**, all **72 Node tests**, lint and the production build passed, including four profile-import checks. The last full Chromium regression run on **6 November** passed **28 tests**, including published-menu filters, photo credits/fallbacks and administrator price replacement/republication.
+On **10 November**, all **82 Node tests**, lint and the production build passed. All **33 Chromium scenarios** passed across the initial run and focused reruns, including side-by-side café comparisons at 360px/1440px, filters, café swapping, reloads, menu links and empty/retry states. See [the comparison verification record](implementation-report.md#café-comparison-fix-10-november-2026) for run details.
 
 Browser results and screenshots are in ignored `playwright-report/` and `test-results/`. Open the report with `npx playwright show-report`. The reduced-motion test intentionally produces Motion's development warning about reduced motion.
 
@@ -286,6 +287,8 @@ The confirmed real integration run **passed on 4 November**, and its temporary i
 Run the cleanup worker after future integration checks. Fixture sign-in alone does not test email delivery; continue to exercise the real mailbox/browser flows after Auth configuration changes.
 
 The real café import was also checked on 6 November: 30 exact source amounts and photo records, one import audit after a matching rerun, unchanged account/profile hashes, anonymous administrator denial and comparison exclusion. The live menu passed at 360px and 1440px with 30 cards, 31 loaded images, working budget/sort/reload controls and no page/HTTP errors or horizontal overflow. These café checks used the real local PostgREST service; see [the café verification record](implementation-report.md#café-menu-update-6-november-2026).
+
+On **10 November**, actual anonymous PostgREST comparisons returned Cold Coffee at ₹110/₹70, Cheese Fries at ₹150/₹90 and Chicken Popcorn at ₹130/₹120. Budget filtering retained both prices, swapping reversed their order, and unspecified Tea did not match Small/Large variants. The running comparison page also passed budget and swap interactions without console errors.
 
 On **7 November**, the real Anas Tech import and matching rerun passed. Anonymous discovery/profile/photo reads, exact portrait-byte hashes, 360px/1440px layouts, temporary sign-in, owner-editor reload and sign-out all passed. Four credential-file HTTP requests returned 403. See [profile verification](profiles.md#verification-7-november-2026).
 

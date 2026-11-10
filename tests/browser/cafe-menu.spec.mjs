@@ -76,15 +76,13 @@ test("[mocked API] database retry and unavailable-image fallback keep source-lab
   await expect(card).toContainText("Menu-board price")
 })
 
-test("[mocked API] comparison mode requires verified exact portions rather than treating the photographed menu as a comparison", async ({ page }) => {
+test("[mocked API] comparison mode explains when only one café has a published menu", async ({ page }) => {
   await page.goto("/canteen-prices")
   await page.getByRole("link", { name: "Compare prices", exact: true }).click()
-  await expect(page.getByRole("heading", { name: "Compare like for like." })).toBeVisible()
-  await page.getByRole("combobox", { name: /^Canteen/ }).selectOption({ label: "NESCAFÉ IUST" })
-  await expect(page.locator(".price-card").first()).toContainText("Check needed")
-  await page.getByLabel("Max INR", { exact: true }).fill("120")
+  await expect(page.getByRole("heading", { name: "Compare café prices." })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "A second café is needed." })).toBeVisible()
+  await expect(page.getByRole("combobox", { name: "Second café", exact: true })).toBeDisabled()
   await expect(page.locator(".price-card")).toHaveCount(0)
-  await expect(page.getByText("Nothing on this menu yet.")).toBeVisible()
   await page.getByRole("link", { name: "Café menus", exact: true }).click()
   await expect(page.locator(".menu-card")).toHaveCount(30)
 })

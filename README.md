@@ -35,7 +35,7 @@ npm run menu:import -- --cafe nescafe-iust --instance YOUR_INSPECTED_INSTANCE_UU
 npm run menu:import -- --cafe brew-and-brink --instance YOUR_INSPECTED_INSTANCE_UUID
 ```
 
-See **[Café setup and maintenance](docs/cafes.md)** for source records, repeatable imports, publication controls and the photograph workflow. Exact-portion comparisons are at `/canteen-prices?view=compare`; menu listings preserve supplied size labels without assuming exact quantities or observation dates.
+Open **[Compare prices](http://localhost:5173/canteen-prices?view=compare)** to choose two cafés and compare matching published menu items side by side, with lower-price highlights, differences and budget filters. Size variants stay separate and unknown serving quantities are labelled. See **[Café setup and maintenance](docs/cafes.md)** for source records, repeatable imports, publication controls and the photograph workflow.
 
 ### Send account emails with Resend
 
@@ -69,7 +69,7 @@ npm run preview
 - Database discovery with combined filters, counts, pagination, spotlight profiles and detail pages.
 - Administrator account review, reference editing/merges, role management, settings and audit history.
 - Database-backed campus café menus for BREW AND BRINK and NESCAFÉ IUST, source-labelled prices, real food-photo credits and administrator publication controls.
-- Exact-portion INR canteen comparisons, append-only price/verification history and private source evidence. Freshness starts at **30 days**.
+- Side-by-side published-menu comparisons in INR, café swapping and URL-persisted filters. The exact-portion verification API, append-only price history and private source evidence support administrator checks with **30-day** freshness.
 - Private raster uploads, metadata-stripped WebP processing, permission-checked image streaming and a cleanup worker.
 - An opt-in, loopback-only seed of **45 labelled development profiles**, including Mustafa Shahzad and Hashim. It creates 46 fixture Auth accounts including a sample administrator; 45 is a dataset size, not an enrollment limit. `npm run seed:dev -- --profiles-only` creates no canteen fixtures and preserves genuine café data. Ordinary reruns preserve the manifest's saved scope; illustrative comparison cases require a separate explicit opt-in.
 
@@ -87,7 +87,7 @@ npm run lint
 npm run build
 ```
 
-On **10 November**, all **77 Node tests**, **8 targeted café Chromium checks**, lint and the production build passed. Live API checks matched every Brew and Brink name, size and amount to the supplied text and verified all 26 selected photo files. The real local database has all **nine migrations** applied. SQL lint reported **27 warnings and no errors**; the last full Chromium regression suite passed **28/28** on **6 November**.
+On **10 November**, all **82 Node tests**, lint and the production build passed. All **33 Chromium scenarios** passed across the initial run and focused reruns, including comparisons at **360px and 1440px**. The real local database has all **ten migrations** applied; actual PostgREST and browser checks confirmed the three shared menu items, both prices, budget filtering and café swapping. SQL lint reported **32 warnings and no errors**. See the [verification record](docs/implementation-report.md#café-comparison-fix-10-november-2026) for details.
 
 Real local Auth/PostgREST/Storage/Edge integration, profile/portfolio persistence and confirmation/resend/password-recovery flows also passed. See the [implementation report](docs/implementation-report.md) for evidence and remaining acceptance work. External email activation requires sender credentials through [email setup](docs/email.md).
 
