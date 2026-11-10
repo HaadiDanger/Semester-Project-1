@@ -5,15 +5,19 @@ import { delimiter, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
 import { createCafeMenuImportSQL, loadCafeMenu } from "./lib/cafe-menu-import.mjs"
+import { createCafePhotoUpdateSQL, loadCafePhotoUpdate } from "./lib/cafe-photo-update.mjs"
 
-const { values } = parseArgs({ options: { cafe: { type: "string", default: "nescafe-iust" }, instance: { type: "string" },
+const { values } = parseArgs({ options: { cafe: { type: "string" }, "photo-update": { type: "string" }, instance: { type: "string" },
   operator: { type: "string", default: "cafe-menu-import-cli" }, sql: { type: "string" } } })
-const { menu, photos } = await loadCafeMenu(values.cafe)
-const sql = createCafeMenuImportSQL({ menu, photos, instanceId: values.instance, operator: values.operator })
+if (values.cafe && values["photo-update"]) throw new Error("Choose either --cafe or --photo-update.")
+const data = values["photo-update"] ? await loadCafePhotoUpdate(values["photo-update"]) : await loadCafeMenu(values.cafe)
+const createSQL = values["photo-update"] ? createCafePhotoUpdateSQL : createCafeMenuImportSQL
+const sql = createSQL({ ...data, instanceId: values.instance, operator: values.operator })
+const operation = data.update ? `${data.update.cafe_name} photograph update` : `${data.menu.name} menu import`
 if (values.sql) {
   const destination = resolve(values.sql)
   await writeFile(destination, sql, { flag: "wx" })
-  console.log(`Wrote ${menu.name} import SQL to ${destination}. It checks the selected instance UUID and runs atomically.`)
+  console.log(`Wrote ${operation} SQL to ${destination}. It checks the selected instance UUID and runs atomically.`)
 } else {
   const root = fileURLToPath(new URL("../", import.meta.url)), env = { ...process.env }
   if (process.platform === "win32") {
@@ -39,6 +43,6 @@ if (values.sql) {
   const actual = database("select instance_id from private.instance_config where singleton;")
   if (actual !== values.instance) throw new Error("The local database does not match --instance. No menu records were written.")
   database(sql)
-  console.log(`${menu.name} menu import completed in local instance ${actual}.`)
+  console.log(`${operation} completed in local instance ${actual}.`)
   console.log(database("select jsonb_build_object('cafes',(select count(*) from public.canteens where seed_batch_id is null),'published_menu_items',(select count(*) from private.published_canteen_menu));"))
 }

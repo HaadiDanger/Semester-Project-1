@@ -1,14 +1,31 @@
 # IUST Orbit implementation report
 
-**Latest update: 7 November 2026.** **[Anas Tech](profiles.md)** is now in the directory with the user-supplied portrait and tech-focused copy. All **72 Node tests**, lint and the production build passed; the live profile passed desktop/mobile, photo, sign-in and repeat-import checks. All **eight migrations** are applied to the real local Supabase instance. The last full Chromium regression suite passed **28/28** on 6 November. **NESCAFÉ IUST’s 30-item menu** remains at **http://localhost:5173/canteen-prices**.
+**Latest update: 10 November 2026.** **BREW AND BRINK’s 29-item menu** is available alongside **NESCAFÉ IUST’s 30-item menu** at **http://localhost:5173/canteen-prices**. All **77 Node tests**, **8 targeted café Chromium checks**, lint and the production build passed. All **nine migrations** are applied to the real local Supabase instance. Resend SMTP setup is ready, and Anas Tech remains removed from the public website. The last full Chromium regression suite passed **28/28** on 6 November.
 
-**Branding:** Header/footer, orbit icon/favicon, browser metadata, package name, authentication emails and setup messages now use **IUST Orbit**. Visual inspection at 360px and 1440px confirmed the name, icon, home labels and browser title. Local Supabase serves the branded confirmation/recovery templates. Password login remains enabled; Gmail activation is paused pending the owner’s sending address and Google app password through `npm run email:setup`.
+**Branding:** Header/footer, orbit icon/favicon, browser metadata, package name, authentication emails and setup messages now use **IUST Orbit**. Visual inspection at 360px and 1440px confirmed the name, icon, home labels and browser title. Local Supabase serves the branded confirmation/recovery templates. Password login remains enabled; external email activation awaits sender credentials through [email setup](email.md).
 
 **Earlier platform handoff (4 November):** The first six migrations applied on PostgreSQL 17.11 and 45 labelled sample profiles were loaded. Real Auth/PostgREST/Storage/Edge integration, ordinary signup/local confirmation, profile/portfolio uploads, two-context persistence and password recovery passed. The café update below adds genuine menu records while preserving that profiles-only fixture scope.
 
 Delivery branch: [`feat/supabase-campus-platform`](https://github.com/HaadiDanger/Semester-Project-1/tree/feat/supabase-campus-platform). Database, Auth, Storage and Edge operations described below occurred on the positively identified local stack. GitHub source publication does not deploy the app or populate a hosted database.
 
-## Anas Tech profile (7 November 2026)
+## Brew and Brink menu (10 November 2026)
+
+- Completed the existing Brew and Brink draft and imported **29 listings across five sections**, priced **₹15–₹170**. The supplied Markdown, exact names, Small/Large variants, subtitle and tagline are retained in the [source and manifest](cafes.md#brew-and-brink-source-and-inventory).
+- Applied `202611090001_cafe_menu_sources_and_sections.sql` to local instance `43bbe85a-f1a8-403a-8776-ee2a5a57d87f`. Text/photograph source labels and café-local sections support shared catalogue identities with distinct prices. Existing full-profile and NESCAFÉ published-row digests matched before/after; counts stayed at **49 Auth accounts and 46 profiles**.
+- Local inventory now contains **2 cafés, 59 published listings and one import audit per café**. The actual anonymous PostgREST response matched every row of the supplied Markdown, including sizes. Budget filtering returned eight listings at ₹50 or less, and NESCAFÉ Cold Coffee remained ₹70 in its own section.
+- Validated all **26 Brew and Brink photo files** and their live HTTP bytes against the curated SHA-256 metadata. Desktop/mobile card crops were visually reviewed; [asset notes](../ASSET-NOTES.md#brew-and-brink-photographs) document the 20 additional sources and six reused photographs.
+- **77/77 Node tests** passed, including shared-item sections, variants, source preservation on administrator saves and repeated imports. **8/8 targeted café Chromium checks** passed, including Brew and Brink at **360px and 1440px**, café switching, all 30 displayed images, sizes, filters and reloads. These browser tests use real application SQL with doubled HTTP/Auth. The in-app browser also loaded the real local menu without console errors.
+- Lint and production build passed. Real SQL lint reported **27 warnings and no errors**.
+
+## Resend support and profile removal (9 November 2026)
+
+- Verified compatibility against the official Resend/Supabase SMTP documentation. Added `npm run email:setup:resend`: verified-domain sender, separate test recipient, hidden API-key input, implicit TLS on `smtp.resend.com:465`, and username `resend`.
+- Settings are written atomically to ignored `supabase/.env.local` only after SMTP authentication and test-message acceptance. Managed Gmail blocks migrate to a provider-neutral block; failures preserve existing settings and provider errors do not expose credentials. Four new SMTP-double checks cover secure setup, provider switching, rejected sends and invalid/conflicting input.
+- Applied `supabase/operator/remove-anas-tech-profile.sql` to inspected instance `43bbe85a-f1a8-403a-8776-ee2a5a57d87f`. The existing removal state hides discovery, direct public profile reads and public photo access, clears spotlight selection, and records one operator audit. Repeat removal is idempotent; import receipts preserve the removal on normal reimport.
+- Actual anonymous APIs returned zero Anas Tech matches, a null direct profile, and 45 remaining public profiles. The running image gateway denied the portrait with **403 — Image is not available** and `no-store` headers. Live browser checks showed **No matches just yet** and **Profile not available** without console errors. Full-row digests for other profiles/moderation, account controls and café records matched before/after.
+- `npm test`: **76/76 passed**. Lint and production build passed. External Resend delivery awaits a verified sending domain and owner-supplied API key; the local mailbox is still active.
+
+## Historical Anas Tech import (7 November 2026)
 
 - Recovered and visually matched the original supplied portrait. The checked-in WebP is auto-oriented, metadata-stripped, **888 × 1280**, **134,518 bytes**; original and normalized hashes are recorded in the [profile manifest](../scripts/data/profiles/anas-tech.json).
 - Added the requested name, tech introduction, services/interests, three technology skills and a non-deliverable temporary login email. Programme and semester fields are empty, with no invented completed projects or public contact links.
@@ -18,7 +35,7 @@ Delivery branch: [`feat/supabase-campus-platform`](https://github.com/HaadiDange
 - Temporary sign-in, populated owner-editor reload, sign-out and subsequent anonymous photo/profile reads passed. A matching CLI rerun preserved full-row fingerprints for the new account, profile, controls, skill links, moderation, asset, Storage object and audit, plus the generated credentials.
 - All **72/72 Node tests**, lint and production build passed. Four direct/raw/URL-module/absolute-path credential-file requests returned **403**. SQL lint retained **27 warnings and no errors**. Sanitized live evidence is in ignored `.profile-imports/live-verification.json`, with desktop/mobile screenshots alongside it.
 
-See [profile setup and maintenance](profiles.md) for the profile link, repeatable import and local credentials location.
+See [profile history and removal](profiles.md) for the current removal status and original import records.
 
 ## Café menu update (6 November 2026)
 
@@ -46,7 +63,7 @@ Use [café setup and maintenance](cafes.md) for imports, publication and future 
 - The disposable account's initial cleanup hit the intentional `account_controls` foreign-key restriction. Its exact UUID, email, creation time, unchanged controls and empty application data were inspected; the empty control row was removed with an operator audit, then the Auth account was deleted through the Admin API. Its three Mailpit messages were removed. Sanitized verification/cleanup results remain in ignored `.dev-seed/email-flow-results.json`.
 - A real nested environment-file HTTP check returned **403** without its test value. The temporary probe file was removed. SMTP credentials remain outside browser configuration and the bundle.
 
-**Activation remaining:** external Gmail delivery has not been tested with owner credentials. Run `npm run email:setup` in an interactive terminal and follow the restart instructions in [Gmail account-email setup](email.md). Until then, account emails are captured by local Mailpit.
+**Activation remaining:** external SMTP delivery has not been tested with owner credentials. Run `npm run email:setup:resend` (or `npm run email:setup` for Gmail) in an interactive terminal and follow the restart instructions in [account-email setup](email.md). Until then, account emails are captured by local Mailpit.
 
 ## 1. Baseline and repository state
 
@@ -87,7 +104,7 @@ Authentication uses Supabase JS `2.118.0`; the database rechecks account status 
 
 ## 3. Database and configuration execution
 
-Eight ordered migrations replay successfully in **disposable PGlite databases**, using minimal Auth/Storage schemas and PostgreSQL roles supplied by `tests/helpers/database.mjs`. The first six applied during fresh real Supabase startup on 4 November; the café migration applied to the populated instance on 6 November and the profile-import migration on 7 November:
+Nine ordered migrations replay successfully in **disposable PGlite databases**, using minimal Auth/Storage schemas and PostgreSQL roles supplied by `tests/helpers/database.mjs`. The first six applied during fresh real Supabase startup on 4 November; the café migration applied to the populated instance on 6 November, the profile-import migration on 7 November and the menu-source/section migration on 10 November:
 
 | Migration | Scope |
 | --- | --- |
@@ -99,6 +116,7 @@ Eight ordered migrations replay successfully in **disposable PGlite databases**,
 | `202611030006_development_fixture_controls.sql` | Service-only fixture registration, inventory and exact-batch cleanup. |
 | `202611060001_cafe_menus.sql` | Curated photo metadata, operator-attributed prices, source-labelled menu reads and versioned publication. |
 | `202611070001_operator_profile_imports.sql` | Operator-attributed eligibility/profile approval and attribution reset on later edits/decisions. |
+| `202611090001_cafe_menu_sources_and_sections.sql` | Café subtitles, text/photograph provenance, independent menu sections and source-aware publication. |
 
 Migration SHA-256 values at handoff:
 
@@ -111,6 +129,7 @@ eff88ed6fafdb6b89becf392568ccbba9f3ca42b1bd097d6692104c898ee2554  202611030005_p
 6518faa139232affa7db39545e4cc5b67bff778cdacdbc4e7799a6d09287bccb  202611030006_development_fixture_controls.sql
 e4aaed894943a820b2f62660731812456858710cc358dd303be6b9a7c8dc1863  202611060001_cafe_menus.sql
 2802862bb5c6b187418602465978cdf354ef1025c9c150654041194b60960537  202611070001_operator_profile_imports.sql
+917bf5231e585a0e1e9b729b58056e2d5791a10b76f30350c81da8f620692a04  202611090001_cafe_menu_sources_and_sections.sql
 ```
 
 The local configuration targets `iust-connect-local`, API port `54321`, PostgreSQL 17 on `54322`, Studio `54323` and local mail `54324`. The database itself starts `production`, seed-disabled, with manual eligibility and 30-day freshness even on a local installation. Migrations contain no official academic catalogue, student fixtures or genuine prices.
@@ -245,7 +264,7 @@ Keyboard checks cover the skip link, mobile navigation, dialog Tab/Shift+Tab con
 | Privacy edits | Audience changes use aggregate saving and return the profile to a hidden draft for review. This prevents unreviewed publication but differs from the proposed approval-preserving privacy-only mutation. Unpublish provides immediate public withdrawal. |
 | Portfolio ordering | Array order is persisted and IDs survive add/remove edits. The editor has no reorder control, so UI reorder acceptance is incomplete. |
 | Fixture states | All 45 initial profiles are published for development discovery. Other moderation states are tested in disposable suites rather than included in the initial seed. |
-| Current local data | Anas Tech’s owner-requested profile/portrait, 45 profiles-only fixtures and the genuine 30-item NESCAFÉ menu. Three technology skills are available; normal profile submission still requires official academic references and independent eligibility/content review. |
+| Current local data | 45 public profiles-only fixtures and the genuine 30-item NESCAFÉ menu. Anas Tech is marked removed with public profile/photo access revoked. Three technology skills are available; normal profile submission still requires official academic references and independent eligibility/content review. |
 | Café source scope | Menu-board prices are publicly browsable with credited illustrative photos. The original unknown capture date/portions/availability are not treated as verified comparison data. |
 | Audit and retention | Privileged decisions/evidence reads and owner deletion requests are audited. Ordinary draft saves use versions/receipts without an audit event. General Auth/report/audit/receipt purge jobs are not installed. Profile deletion retains the Auth account. |
 | Upload capacity | 40 reservations per rolling 24 hours and 30 live assets per account. Retained historical evidence counts toward the live cap and cannot be deleted as an orphan; sustained administrator evidence entry needs a reviewed capacity/retention change. |
@@ -259,7 +278,7 @@ These deviations are not counted as completed acceptance for the richer historic
 
 | Pending item | Precise next action |
 | --- | --- |
-| Extended Auth acceptance | Signup, confirmation/resend, reused-link rejection and password recovery passed with local Auth/Mailpit. Verify real time-expired links, secure email changes and external Gmail delivery after configuring the sender. |
+| Extended Auth acceptance | Signup, confirmation/resend, reused-link rejection and password recovery passed with local Auth/Mailpit. Verify real time-expired links, secure email changes and external Resend/Gmail delivery after configuring the sender. |
 | Extended Storage/Edge acceptance | Basic real upload/access denials, normalization, streaming and cleanup passed. Extend real-service fault/concurrency coverage for response loss, role/audience races and measured hosted runtime resources. |
 | SQL lint warnings | Review the 27 routine-volatility/initializer warnings and use forward-fix migrations for changes to the already-applied schema. |
 | Database/operational acceptance | The populated café upgrade passed. Extend staged-upgrade coverage and exercise real multi-connection save/review/role/price/cleanup races, representative query plans and a matched database/Storage restore drill. PGlite sequencing/conflict checks do not close these gates. |
@@ -283,7 +302,7 @@ npm run edge:prepare
 npx supabase functions serve --env-file .env.functions.local
 ```
 
-In another terminal, run `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`. Open **http://localhost:5173**, create your own application account and open its confirmation link in the same browser. Look in your real inbox after [Gmail setup](email.md), or at **http://127.0.0.1:54324** before SMTP activation. **My profile → Upload your photo → Save draft → Preview saved profile** is ready to use. See [setup](setup.md) for a fresh checkout, the exact-instance configuration helper, administrator bootstrap and fixture controls.
+In another terminal, run `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`. Open **http://localhost:5173**, create your own application account and open its confirmation link in the same browser. Look in your real inbox after [email setup](email.md), or at **http://127.0.0.1:54324** before SMTP activation. **My profile → Upload your photo → Save draft → Preview saved profile** is ready to use. See [setup](setup.md) for a fresh checkout, the exact-instance configuration helper, administrator bootstrap and fixture controls.
 
 After the local stack and guarded seed are ready:
 

@@ -1,0 +1,74 @@
+{
+  "key": "brew-and-brink",
+  "name": "BREW AND BRINK",
+  "subtitle": "University Café – Food & Beverages Menu",
+  "location": "IUST campus",
+  "description": "Brew and Brink – Fresh Sips, Delicious Bites!",
+  "cover_photo_key": "takeaway-latte",
+  "currency": "INR",
+  "source": {
+    "kind": "text",
+    "label": "User-supplied text menu · BREW AND BRINK",
+    "received_on": "2026-11-09",
+    "observed_on": null,
+    "text_file": "brew-and-brink-menu.md",
+    "text_sha256": "68dd843fa611007635c320ad8cc6cc8580cb82e3a3648ab91919e05f2f2f2be1",
+    "note": "Transcribed from the supplied BREW AND BRINK text menu. Small/Large labels are preserved where given. Exact quantities, the menu's effective date, hours, and current availability were not supplied."
+  },
+  "sections": [
+    {
+      "name": "Mojitos & Refreshers",
+      "items": [
+        { "name": "Virgin Mojito", "price": 80, "photo_key": "virgin-mojito" },
+        { "name": "Blackcurrant", "price": 100, "photo_key": "blackcurrant" },
+        { "name": "Strawberry Mojito", "price": 90, "photo_key": "strawberry-mojito" },
+        { "name": "Green Apple Mojito", "price": 90, "photo_key": "green-apple-mojito" },
+        { "name": "Kiwi Mojito", "price": 90, "photo_key": "kiwi-refresher" },
+        { "name": "Orange Mojito", "price": 90, "photo_key": "orange-refresher" },
+        { "name": "Watermelon Mojito", "price": 90, "photo_key": "watermelon-mojito" }
+      ]
+    },
+    {
+      "name": "Shakes & Cold Beverages",
+      "items": [
+        { "name": "Mango Shake", "price": 100, "photo_key": "mango-shake" },
+        { "name": "Chocolate Shake", "price": 100, "photo_key": "chocolate-shake" },
+        { "name": "Iced Americano", "price": 50, "photo_key": "takeaway-iced-americano" },
+        { "name": "Cold Coffee", "price": 110, "photo_key": "takeaway-cold-coffee" }
+      ]
+    },
+    {
+      "name": "Tea & Hot Coffee",
+      "items": [
+        { "name": "Tea", "variant": "Small", "price": 15, "photo_key": "takeaway-tea" },
+        { "name": "Tea", "variant": "Large", "price": 30, "photo_key": "takeaway-tea" },
+        { "name": "Coffee", "variant": "Small", "price": 30, "photo_key": "takeaway-latte" },
+        { "name": "Coffee", "variant": "Large", "price": 60, "photo_key": "takeaway-latte" },
+        { "name": "Lemon Tea", "variant": "Small", "price": 20, "photo_key": "takeaway-lemon-tea" },
+        { "name": "Black Coffee", "variant": "Small", "price": 30, "photo_key": "takeaway-black-coffee" }
+      ]
+    },
+    {
+      "name": "Specials & Fast Food",
+      "items": [
+        { "name": "French Fries", "price": 110, "photo_key": "french-fries" },
+        { "name": "Cheese Fries", "price": 150, "photo_key": "cheese-fries" },
+        { "name": "Burger", "price": 150, "photo_key": "veg-burger" },
+        { "name": "Big Daddy Burger", "price": 170, "photo_key": "double-burger" },
+        { "name": "Chicken Roll", "price": 150, "photo_key": "chicken-roll" },
+        { "name": "Maggi", "price": 40, "photo_key": "plain-maggi" },
+        { "name": "Cheese Maggi", "price": 60, "photo_key": "plain-maggi" },
+        { "name": "Sandwich", "price": 40, "photo_key": "veg-sandwich" },
+        { "name": "Chicken Strips", "price": 140, "photo_key": "chicken-strips" },
+        { "name": "Chicken Popcorn", "price": 130, "photo_key": "chicken-popcorn" }
+      ]
+    },
+    {
+      "name": "Momos",
+      "items": [
+        { "name": "Steamed Momos", "price": 100, "photo_key": "veg-momos" },
+        { "name": "Fried Momos", "price": 110, "photo_key": "fried-momos" }
+      ]
+    }
+  ]
+}

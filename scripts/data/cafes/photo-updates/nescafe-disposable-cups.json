@@ -1,0 +1,15 @@
+{
+  "key": "nescafe-disposable-cups",
+  "cafe_key": "nescafe-iust",
+  "cafe_name": "NESCAFÉ IUST",
+  "reason": "User request of 9 November 2026: use real photographs of disposable cups for NESCAFÉ's coffee and tea, including the café cover.",
+  "cover": { "from": "cappuccino", "to": "takeaway-cappuccino" },
+  "items": [
+    { "name": "Cold Coffee", "from": "cold-coffee", "to": "takeaway-cold-coffee" },
+    { "name": "Iced Tea Lemon", "from": "iced-tea-lemon", "to": "takeaway-iced-tea" },
+    { "name": "Cappuccino", "from": "cappuccino", "to": "takeaway-cappuccino" },
+    { "name": "Cafe Latte", "from": "cafe-latte", "to": "takeaway-latte" },
+    { "name": "Cafe Mocha", "from": "cafe-mocha", "to": "takeaway-coffee" },
+    { "name": "Tea", "from": "tea", "to": "takeaway-tea" }
+  ]
+}

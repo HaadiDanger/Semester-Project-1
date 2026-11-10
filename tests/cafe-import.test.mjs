@@ -1,7 +1,7 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import { createDatabase, rpc } from "./helpers/database.mjs"
-import { token } from "./helpers/records.mjs"
+import { createUser, token } from "./helpers/records.mjs"
 import { createCafeMenuImportSQL, loadCafeMenu } from "../scripts/lib/cafe-menu-import.mjs"
 
 const data = await loadCafeMenu()
@@ -29,6 +29,49 @@ test("the NESCAFÉ photograph imports as 30 genuine database-backed listings wit
     const audit = (await db.query("select * from private.admin_audit_log where action='menu.import'")).rows[0]
     assert.equal(audit.actor_kind, "operator"); assert.equal(audit.actor_user_id, null)
     assert.equal(audit.details.source.photo_sha256, data.menu.source.photo_sha256)
+  } finally { await db.close() }
+})
+
+test("Brew and Brink preserves café-specific sections, text provenance and size variants alongside shared NESCAFÉ items", async () => {
+  const db = await createDatabase()
+  try {
+    const instanceId = await identity(db), brew = await loadCafeMenu("brew-and-brink")
+    await apply(db, createCafeMenuImportSQL({ ...data, instanceId }))
+    const nescafe = await rpc(db, null, "get_canteen_menu")
+    const sql = createCafeMenuImportSQL({ ...brew, instanceId })
+    await apply(db, sql)
+    const result = await rpc(db, null, "get_canteen_menu")
+    assert.equal(result.canteen.name, "BREW AND BRINK")
+    assert.equal(result.canteen.subtitle, "University Café – Food & Beverages Menu")
+    assert.equal(result.total, 29); assert.equal(result.canteens.length, 2)
+    assert.deepEqual(result.categories.map(row => [row.name, row.item_count]), [
+      ["Mojitos & Refreshers", 7], ["Shakes & Cold Beverages", 4], ["Tea & Hot Coffee", 6], ["Specials & Fast Food", 10], ["Momos", 2],
+    ])
+    assert.ok(result.items.every(item => item.source_kind === "text" && item.source_observed_on === null && item.serving_quantity === null))
+    assert.deepEqual(result.items.filter(item => item.name === "Tea" || item.name === "Coffee").map(item => [item.name, item.variant, item.amount]), [
+      ["Tea", "Small", 15], ["Tea", "Large", 30], ["Coffee", "Small", 30], ["Coffee", "Large", 60],
+    ])
+    const coldCoffee = result.items.find(item => item.name === "Cold Coffee")
+    assert.equal(coldCoffee.category, "Shakes & Cold Beverages"); assert.equal(coldCoffee.amount, 110)
+    const shared = (await db.query("select count(*)::int as total from public.canteen_offerings a join public.canteen_offerings b on b.menu_item_id=a.menu_item_id where a.canteen_id=$1 and b.canteen_id=$2", [nescafe.canteen.id, result.canteen.id])).rows[0].total
+    assert.equal(shared, 3)
+    const previous = await rpc(db, null, "get_canteen_menu", { p_filters: { canteen: nescafe.canteen.id } })
+    for (const key of ["canteen", "categories", "items"]) assert.deepEqual(previous[key], nescafe[key])
+    await apply(db, sql)
+    assert.deepEqual(await rpc(db, null, "get_canteen_menu"), result)
+    assert.equal(await count(db, "private.price_records"), 59)
+    assert.equal(await count(db, "private.admin_audit_log"), 2)
+
+    // Saving a shared item must retain its café section and text source, even for older clients.
+    const admin = await createUser(db, { role: "admin" })
+    const { entry } = await rpc(db, admin, "admin_get_menu_entry", { p_offering_id: coldCoffee.id })
+    await rpc(db, admin, "admin_save_menu_entry", { p_offering_id: coldCoffee.id, p_price_record_id: entry.price_record_id,
+      p_data: { source_label: entry.source_label, photo_key: entry.photo_key, display_order: entry.display_order, is_published: true },
+      p_expected_version: entry.version, p_reason: "Retain the supplied text source and café section", p_request_id: token() })
+    const saved = await rpc(db, null, "get_canteen_menu", { p_filters: { canteen: result.canteen.id, category: coldCoffee.category_id, query: "Cold Coffee" } })
+    assert.equal(saved.total, 1); assert.equal(saved.items[0].category, "Shakes & Cold Beverages"); assert.equal(saved.items[0].source_kind, "text")
+    const audit = (await db.query("select details from private.admin_audit_log where action='menu.import' and target_key='brew-and-brink'")).rows[0]
+    assert.equal(audit.details.source.text_sha256, brew.menu.source.text_sha256)
   } finally { await db.close() }
 })
 

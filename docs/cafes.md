@@ -1,6 +1,6 @@
 # Campus café menus
 
-The first café is **NESCAFÉ IUST** at `/canteen-prices`. Its name, menu identities, prices, source labels, photo metadata and publication state are stored in Supabase. The frontend reads them through `get_canteen_menu`; the manifest is an import source rather than a browser-side menu array.
+**BREW AND BRINK** and **NESCAFÉ IUST** are available at `/canteen-prices`, with a **Choose café** selector. Their names, menu identities, prices, source labels, photo metadata and publication state are stored in Supabase. The frontend reads them through `get_canteen_menu`; manifests are import sources rather than browser-side menu arrays.
 
 ## NESCAFÉ source and inventory
 
@@ -18,19 +18,38 @@ The first café is **NESCAFÉ IUST** at `/canteen-prices`. Its name, menu identi
 | Noodles & pasta | 8 | ₹30–₹70 |
 | **Total** | **30** | **₹15–₹120** |
 
-The local import created **1 genuine café, 4 food categories, 30 menu items, 30 offerings, 30 price records, 30 published entries and 30 photo records**. Cappuccino’s photograph also supplies the cover, so the full page displays 31 images from 30 files. Food photos are real Wikimedia photographs matched to the named dish or preparation style; they are labelled illustrative and link to their authors and licences. See [all photo credits](../ASSET-NOTES.md#campus-café-food-photographs).
+The initial NESCAFÉ import created **1 genuine café, 4 food categories, 30 menu items, 30 offerings, 30 price records, 30 published entries and 30 photo records**. Cappuccino’s photograph also supplies the cover, so the full page displays 31 images from 30 files. Food photos are real Wikimedia photographs matched to the named dish or preparation style; they are labelled illustrative and link to their authors and licences. See [all photo credits](../ASSET-NOTES.md#campus-café-food-photographs).
+
+## Brew and Brink source and inventory
+
+- Source: the supplied **BREW AND BRINK — University Café – Food & Beverages Menu**, preserved in [`scripts/data/cafes/sources/brew-and-brink-menu.md`](../scripts/data/cafes/sources/brew-and-brink-menu.md).
+- Manifest: [`scripts/data/cafes/brew-and-brink.json`](../scripts/data/cafes/brew-and-brink.json), with all 29 names, INR amounts and supplied size labels in source order. The source text's SHA-256 is validated before import.
+- Small/Large labels are distinct item variants. Exact quantities, the menu's effective date, opening hours and current availability were not supplied.
+- Subtitle and tagline appear in the café header. Listings use **Listed menu price** and text-source wording.
+
+| Menu section | Listings | Price range |
+| --- | ---: | ---: |
+| Mojitos & Refreshers | 7 | ₹80–₹100 |
+| Shakes & Cold Beverages | 4 | ₹50–₹110 |
+| Tea & Hot Coffee | 6 | ₹15–₹60 |
+| Specials & Fast Food | 10 | ₹40–₹170 |
+| Momos | 2 | ₹100–₹110 |
+| **Total** | **29** | **₹15–₹170** |
+
+Imported into the inspected local instance on **10 November 2026**, bringing the total to **2 cafés and 59 published listings**. Cold Coffee, Cheese Fries and Chicken Popcorn reuse compatible catalogue identities while retaining each café's own section and price. Brew and Brink uses **26 distinct credited photographs**, including 20 additional files; repeated size variants and the cover reuse their matching image.
 
 ## Import into local Supabase
 
-Complete [local setup](setup.md#2-start-and-inspect-local-supabase), including all seven migrations and database inspection. The menu import is independent of the optional sample-profile seed. The committed WebP files are ready to use; no photo download is needed for a normal checkout.
+Complete [local setup](setup.md#2-start-and-inspect-local-supabase), including all nine migrations and database inspection. The menu import is independent of the optional sample-profile seed. The supplied WebP files are ready to use; no photo download is needed for a normal checkout.
 
 ```sh
 npx supabase migration list
 npx supabase db query --read-only --file supabase/operator/inspect.sql
 npm run menu:import -- --cafe nescafe-iust --instance YOUR_INSPECTED_INSTANCE_UUID
+npm run menu:import -- --cafe brew-and-brink --instance YOUR_INSPECTED_INSTANCE_UUID
 ```
 
-Replace the placeholder with the inspected database UUID. The command checks the configured local API and database container, validates every used photo’s hash/dimensions, and performs a single transaction. For the already configured checkout, the instance is `43bbe85a-f1a8-403a-8776-ee2a5a57d87f` and this import has already completed.
+Replace the placeholder with the inspected database UUID. The command checks the configured local API and database container, validates every used photo’s hash/dimensions, and performs a single transaction. For the already configured checkout, the instance is `43bbe85a-f1a8-403a-8776-ee2a5a57d87f` and both imports have completed.
 
 Open **http://localhost:5173/canteen-prices**. Category, text, budget and sorting controls query the database and retain their state in the URL. The default page holds 36 items, with a bounded 1–48-item RPC page size. Whole-rupee prices omit `.00`; fractional prices retain up to two decimal places.
 
@@ -56,13 +75,13 @@ The output file is created exclusively and must not already exist. Execute the r
 Sign in as a genuine content administrator, then open `/admin` → **Canteen prices** → **Manage price**. The current local `sample-admin` belongs to the development fixture batch and cannot maintain genuine café data; use [first-administrator setup](setup.md#appoint-the-first-administrator) for the owner’s nominated account.
 
 1. Append a new INR price and source/change reason in the price-history form when an amount changes.
-2. In **Café menu publication**, review the current amount and enter the **Public source label**. Leave **Menu photograph date** blank when unknown.
-3. Choose a curated **Illustrative food photograph**, set **Menu display order** (0–1000), check **Publish the current menu-board price**, and provide a **Publication change reason**.
+2. In **Café menu publication**, review the current amount, enter the **Public source label**, and select **Menu source type**. Leave **Menu source date (if known)** blank when unknown.
+3. Choose a curated **Illustrative food photograph**, set **Menu display order** (0–1000), check **Publish the current menu price**, and provide a **Publication change reason**.
 4. Choose **Save menu listing**, then verify the public page. To hide a listing, clear publication and save with a reason.
 
 Publication is linked to one specific price event. Replacing it hides the prior public listing until staff explicitly publish the replacement. Withdrawal, a latest verification revocation, reference retirement or unpublication also remove the listing. Version checks prevent stale saves; reload and review the stored listing after a conflict. Historic prices remain in append-only private history.
 
-Menu browsing displays documented **menu-board prices** without claiming current availability. Exact-portion comparisons are at `/canteen-prices?view=compare`; they require a known matching portion, current verified evidence and recent availability checks. NESCAFÉ’s original unknown-portion listings do not qualify automatically. When confirmed serving sizes become available, create correctly identified comparison items/offerings using [source-backed catalogue entry](operations.md#enter-a-source-backed-offering); used comparison identities are immutable.
+Menu browsing displays documented prices from the supplied photograph or text menu. Exact-portion comparisons are at `/canteen-prices?view=compare`; they require a known matching portion, current verified evidence and recent availability checks. Neither café's original unknown-quantity listings qualify automatically; a Small/Large label alone does not establish a comparable quantity. When confirmed serving sizes become available, create correctly identified comparison items/offerings using [source-backed catalogue entry](operations.md#enter-a-source-backed-offering); used comparison identities are immutable.
 
 ## Photograph provenance and updates
 
@@ -70,7 +89,7 @@ Menu browsing displays documented **menu-board prices** without claiming current
 | --- | --- |
 | [`scripts/data/menu-photo-sources.json`](../scripts/data/menu-photo-sources.json) | Curated Wikimedia file titles, stable keys, descriptive alt text and any explicit author/licence metadata. |
 | [`scripts/data/menu-photos.json`](../scripts/data/menu-photos.json) | Retrieved metadata, original/download URLs and hashes, author, licence, source/retrieval dates, transformations and final WebP dimensions/hash/size. |
-| [`public/images/menu/`](../public/images/menu/) | The 30 checked-in, locally served WebP photographs, totalling 3,284,052 bytes. |
+| [`public/images/menu/`](../public/images/menu/) | Locally served WebP photographs; selected files are hash- and dimension-checked during import. |
 | [`scripts/prepare-menu-photos.mjs`](../scripts/prepare-menu-photos.mjs) | Operator-only Wikimedia download and raster normalization tool. |
 
 For new source selections, edit the source list and run `npm run menu:photos`, or select specific keys with `npm run menu:photos -- PHOTO_KEY`. Matching existing files are hash-checked and reused. The tool requires complete attribution and accepts the recorded CC BY, CC BY-SA, CC0 or public-domain licences. It auto-orients, strips metadata and converts downloaded photographs to WebP through the real image decoder; the UI crops them to fit.
@@ -81,6 +100,6 @@ For an already imported café, keep existing photo keys, files and metadata stab
 
 ## Add the next café
 
-Add one café at a time from its supplied source. Create a new `scripts/data/cafes/<key>.json` using the NESCAFÉ manifest shape, preserving exact names/amounts and recording only known dates/location details. Choose credited real photographs, add their source records, prepare/review them and update the attribution document. Import with `--cafe <key>` and the inspected instance UUID. Compatible genuine categories/items can be reused; conflicting or sample records stop the import for review.
+Add one café at a time from its supplied source. Create a new `scripts/data/cafes/<key>.json` using either existing manifest, preserving exact names, amounts and any size variants. For a text source, set `source.kind` to `text` and retain the Markdown and its hash as Brew and Brink does. Record only known dates/location details. Choose credited real photographs, add their source records, prepare/review them and update the attribution document. Import with `--cafe <key>` and the inspected instance UUID. Compatible genuine categories/items can be reused; café-specific sections are stored on the listing rather than changing shared catalogue categories.
 
-The café chooser appears when more than one café has published listings. Run the relevant SQL/import/browser checks and verify that café’s names, prices, credits, filters and layout against the real local service before handoff. Current executed results are recorded in [the implementation report](implementation-report.md#café-menu-update-6-november-2026).
+The café chooser appears when more than one café has published listings. Run the relevant SQL/import/browser checks and verify that café’s names, prices, credits, filters and layout against the real local service before handoff. Current executed results are recorded in [the implementation report](implementation-report.md#brew-and-brink-menu-10-november-2026).

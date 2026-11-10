@@ -1,5 +1,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises"
 import { createHash } from "node:crypto"
+import assert from "node:assert/strict"
+import { ImageMagick, MagickFormat, MagickGeometry } from "@imagemagick/magick-wasm"
 import { normalizeImage } from "../supabase/functions/_shared/image-validator.mjs"
 
 // Curated Wikimedia photographs only. This is an operator build tool, never a browser request.
@@ -13,8 +15,14 @@ const directory = new URL("../public/images/menu/", import.meta.url)
 await mkdir(directory, { recursive: true })
 const pending = []
 for (const source of sources.filter(photo => !keys.length || keys.includes(photo.key))) {
+  if (source.crop) {
+    const { x, y, width, height } = source.crop
+    assert.ok([x, y, width, height].every(Number.isFinite) && x >= 0 && y >= 0 && width > 0 && height > 0
+      && x + width <= 1 && y + height <= 1, `Invalid relative crop: ${source.key}`)
+  }
   const prior = locked.find(photo => photo.key === source.key)
-  if (prior?.title === source.title && prior.alt === source.alt && (!source.author || prior.author === source.author) && (!source.license_url || prior.license_url === source.license_url)) {
+  if (prior?.title === source.title && prior.alt === source.alt && JSON.stringify(prior.crop) === JSON.stringify(source.crop)
+    && (!source.author || prior.author === source.author) && (!source.license_url || prior.license_url === source.license_url)) {
     try {
       const existing = await readFile(new URL(`${source.key}.webp`, directory))
       if (createHash("sha256").update(existing).digest("hex") === prior.sha256) continue
@@ -41,13 +49,23 @@ for (const source of pending) {
   const response = await fetch(downloadURL, { headers, signal: AbortSignal.timeout(30000) })
   if (!response.ok) throw new Error(`Photo ${source.key} returned HTTP ${response.status}. Retry later; completed files are preserved.`)
   const input = new Uint8Array(await response.arrayBuffer())
-  const image = await normalizeImage(input, () => readFile(new URL(import.meta.resolve("@imagemagick/magick-wasm/magick.wasm"))))
+  let image = await normalizeImage(input, () => readFile(new URL(import.meta.resolve("@imagemagick/magick-wasm/magick.wasm"))))
+  if (source.crop) {
+    const { x, y, width, height } = source.crop
+    image = ImageMagick.read(image.bytes, MagickFormat.WebP, photo => {
+      photo.crop(new MagickGeometry(Math.round(x * photo.width), Math.round(y * photo.height), Math.round(width * photo.width), Math.round(height * photo.height)))
+      photo.resetPage(); photo.quality = 85
+      return photo.write(MagickFormat.WebP, data => ({ bytes: new Uint8Array(data), width: photo.width, height: photo.height }))
+    })
+    image.sha256 = createHash("sha256").update(image.bytes).digest("hex")
+  }
   const record = { key: source.key, path: `/images/menu/${source.key}.webp`, alt: source.alt, title: source.title,
     author: source.author || text(meta.Artist.value), source_url: cleanURL(info.descriptionurl),
     license, license_url: cleanURL(source.license_url || meta.LicenseUrl.value), source_date: text(meta.DateTimeOriginal?.value) || `Uploaded ${info.timestamp}`,
     source_description: text(meta.ImageDescription?.value), downloaded_from: downloadURL, original_url: cleanURL(info.url),
     original_sha1: info.sha1, downloaded_sha256: createHash("sha256").update(input).digest("hex"),
-    retrieved_on: new Date().toISOString().slice(0, 10), transformations: "Auto-orient, strip metadata, convert to WebP; display cropped to fit",
+    retrieved_on: new Date().toISOString().slice(0, 10), crop: source.crop,
+    transformations: `${source.crop ? "Crop to the recorded relative rectangle; " : ""}Auto-orient, strip metadata, convert to WebP; display cropped to fit`,
     width: image.width, height: image.height, sha256: image.sha256, byte_size: image.bytes.length }
   await writeFile(new URL(`${source.key}.webp`, directory), image.bytes)
   locked = [...locked.filter(photo => photo.key !== source.key), record].sort((a, b) => a.key.localeCompare(b.key))

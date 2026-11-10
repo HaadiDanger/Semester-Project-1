@@ -214,6 +214,7 @@ fieldset { min-inline-size:0; } .field-input,.filter-select { min-width:0; max-w
 .cafe-hero-body { min-width:0; padding:clamp(27px,3.2vw,48px); align-self:center; }
 .cafe-kicker { display:inline-flex; align-items:center; gap:8px; color:#efc1a5; background:#563c333f; border:1px solid #6b4e434f; border-radius:30px; padding:7px 11px; font-size:11px; }
 .cafe-hero h2 { font-size:clamp(35px,3.9vw,60px); margin-top:20px; }
+.cafe-subtitle { color:#e1cbbb; font-size:13px; line-height:1.7; margin-top:12px; }
 .cafe-location { display:flex; align-items:center; gap:6px; color:#c3cacb; font-size:12px; margin-top:13px; }
 .cafe-description { color:var(--muted); max-width:47ch; margin-top:20px; font-size:14px; line-height:1.8; }
 .cafe-facts { display:flex; align-items:center; flex-wrap:wrap; gap:20px 25px; margin-top:27px; }
@@ -254,6 +255,7 @@ fieldset { min-inline-size:0; } .field-input,.filter-select { min-width:0; max-w
 .menu-card-category { color:#aabdc1; font-size:9px; letter-spacing:.075em; text-transform:uppercase; line-height:1.6; }
 .menu-card-title { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-top:9px; }
 .menu-card-title h3 { font-size:16px; font-weight:500; line-height:1.45; }
+.menu-card-variant { display:block; width:fit-content; margin-top:7px; padding:3px 8px; border:1px solid #486166; border-radius:5px; background:var(--soft); color:var(--green); font-size:10px; font-weight:400; }
 .menu-card-price { color:var(--green); font-size:20px; font-weight:500; font-family:var(--font-serif); white-space:nowrap; }
 .menu-price-label { color:var(--muted); font-size:10px; margin-top:8px; }
 .menu-photo-credit { margin-top:13px; font-size:10px; line-height:1.7; color:var(--muted); }

@@ -1,13 +1,25 @@
-# Anas Tech
+# Imported profile history and removal
 
-Anas Tech is an owner-requested directory profile with the supplied portrait, a tech-focused introduction, and three skills: **Frontend development**, **Technical troubleshooting**, and **Digital tools**.
+## Current status (9 November 2026)
+
+**Anas Tech has been removed from the public website at the repository owner's request.** The profile is marked `removed`, discovery is disabled and its spotlight rank is cleared. Public search returns zero matches, the direct profile page shows **Profile not available**, and the live photo gateway returns **403 — Image is not available**. The directory has **45 other public profiles**.
+
+The operation was applied to local instance `43bbe85a-f1a8-403a-8776-ee2a5a57d87f` using [`supabase/operator/remove-anas-tech-profile.sql`](../supabase/operator/remove-anas-tech-profile.sql). It records an operator-attributed `profile.remove` audit. A repeat execution preserved the version and single audit; full-row digests confirmed the other profiles, account controls and café records were preserved. Existing import receipts also prevent ordinary import reruns from republishing this profile.
+
+This is the platform's **Remove profile** action: public access is withdrawn, while account/content history remains available to authorized owners and administrators. The source portrait and import files below are historical operator assets, outside the production frontend bundle.
+
+To apply the same removal to another inspected database that contains this import, run the operator file in a single transaction with `iust.operator.instance_id`, `iust.operator.label` and `iust.operator.reason` set. Follow the [transaction-local operator settings](setup.md#transaction-local-operator-settings) pattern. The script checks the exact database instance, profile UUID, Auth import marker and original import receipt before changing the entry.
+
+## Original import (7 November 2026)
+
+Anas Tech was an owner-requested directory profile with the supplied portrait, a tech-focused introduction, and three skills: **Frontend development**, **Technical troubleshooting**, and **Digital tools**. The following records describe that earlier import; importing it is not part of the current website setup.
 
 - Profile: `http://localhost:5173/student/75cbf346-a3b7-4e17-b9e8-7dbd52f7293e`
 - Search: `http://localhost:5173/discover?query=Anas%20Tech`
 - Temporary sign-in email: `anas.tech.b88010@example.invalid` — a placeholder, not a working mailbox.
 - Generated password: `.profile-imports/anas-tech.json`, ignored by Git and blocked by Vite. The login email is not automatically published as a contact link.
 
-## Import on a fresh local database
+## Historical import on a fresh local database
 
 Start the configured Supabase stack, apply all migrations with `npx supabase migration up`, and inspect `private.instance_config.instance_id`. Then run:
 

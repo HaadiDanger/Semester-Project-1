@@ -14,6 +14,7 @@
     "edge:prepare": "node scripts/prepare-edge.mjs",
     "connect:local": "node scripts/connect-local.mjs",
     "email:setup": "node scripts/setup-email.mjs",
+    "email:setup:resend": "node scripts/setup-email.mjs --provider resend",
     "menu:photos": "node scripts/prepare-menu-photos.mjs",
     "menu:import": "node scripts/import-cafe-menu.mjs",
     "profile:import": "node scripts/import-profile.mjs",

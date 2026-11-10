@@ -1,6 +1,6 @@
 # IUST Orbit local setup and verification
 
-This guide describes the implemented application. The [implementation report](implementation-report.md) records which checks actually ran. As of **7 November 2026**, the real local Supabase stack has **eight applied migrations**, **Anas Tech’s profile and supplied portrait**, **45 labelled sample profiles**, and **NESCAFÉ IUST’s 30 published menu listings**. See [profile setup](profiles.md) and [café setup and maintenance](cafes.md) for the import workflows.
+This guide describes the implemented application. The [implementation report](implementation-report.md) records which checks actually ran. As of **10 November 2026**, the real local Supabase stack has **nine applied migrations**, **45 publicly listed sample profiles**, **BREW AND BRINK’s 29 published menu listings**, and **NESCAFÉ IUST’s 30 listings**. Anas Tech has been removed from the public website; see [profile history and removal](profiles.md). See [café setup and maintenance](cafes.md) for the menu import workflow.
 
 ## 1. Prerequisites and application configuration
 
@@ -70,7 +70,7 @@ This helper verifies the local API and database instance, then writes only the i
 
 ### Migration inventory
 
-Apply all eight files in order from `supabase/migrations/`:
+Apply all nine files in order from `supabase/migrations/`:
 
 | File | Purpose |
 | --- | --- |
@@ -82,24 +82,26 @@ Apply all eight files in order from `supabase/migrations/`:
 | `202611030006_development_fixture_controls.sql` | Service-only, instance-guarded fixture registration, inventory and targeted cleanup. |
 | `202611060001_cafe_menus.sql` | Source-labelled café listings, curated photo metadata, operator-attributed prices and versioned publication RPCs. |
 | `202611070001_operator_profile_imports.sql` | Operator-attributed directory approvals for owner-requested profile imports, with attribution reset on later edits/decisions. |
+| `202611090001_cafe_menu_sources_and_sections.sql` | Text-menu provenance, café subtitles, café-specific sections and source-type publication controls. |
 
 Migrations insert no student fixtures, official academic catalogue or canteen prices. `private.instance_config` starts as `production`, `seed_enabled=false`, manual eligibility and a **30-day** freshness window. This is also the initial state on a local installation. Automatic SQL seeding is disabled.
 
-All eight files replay successfully in disposable PGlite databases. The first six applied on fresh local **PostgreSQL 17.11** startup; the café migration applied on 6 November and the profile-import migration on 7 November. Both upgrades preserved the existing 48 Auth accounts and 45 profiles; the subsequent Anas Tech import added one account and profile. Migration history matches all eight files. Real `db lint` completed with **27 warnings and no errors**, concerning STABLE routines that call VOLATILE helpers and implicit text-to-JSONB initializers. Broader staged upgrades and restore drills remain unverified.
+All nine files replay successfully in disposable PGlite databases. The first six applied on fresh local **PostgreSQL 17.11** startup; the café migration applied on 6 November, the profile-import migration on 7 November, and the menu-source/section migration on 10 November. The latest upgrade and Brew and Brink import retained the existing 49 Auth accounts, 46 profiles and NESCAFÉ menu. Migration history matches all nine files. Real `db lint` completed with **27 warnings and no errors**, concerning STABLE routines that call VOLATILE helpers and implicit text-to-JSONB initializers. Broader staged upgrades and restore drills remain unverified.
 
-### Import the first café
+### Import the café menus
 
 After inspecting the upgraded database, use its actual UUID:
 
 ```sh
 npm run menu:import -- --cafe nescafe-iust --instance YOUR_INSPECTED_INSTANCE_UUID
+npm run menu:import -- --cafe brew-and-brink --instance YOUR_INSPECTED_INSTANCE_UUID
 ```
 
-The command loads the checked-in manifest and photographs into the configured local database and records one operator audit. The import is atomic; a matching rerun preserves existing records and staff changes. It is independent of development fixtures and administrator bootstrap. This checkout’s NESCAFÉ import has already completed. Open **http://localhost:5173/canteen-prices**; use [café maintenance](cafes.md) for subsequent changes or SQL export.
+Each command loads the selected manifest and photographs into the configured local database and records one operator audit. The import is atomic; a matching rerun preserves existing records and staff changes. It is independent of development fixtures and administrator bootstrap. Both imports have completed in this checkout. Open **http://localhost:5173/canteen-prices** and use **Choose café**; see [café maintenance](cafes.md) for subsequent changes or SQL export.
 
 ## 3. Serve the image functions
 
-The owner-requested **Anas Tech** profile uses these image functions. Its checked-in portrait and content are imported separately from sample fixtures; follow [Anas Tech profile setup](profiles.md) after applying the migrations.
+Profile and portfolio uploads use these image functions. Public reads are revoked when a profile is removed, including the former Anas Tech listing described in [profile history](profiles.md).
 
 `npm run edge:prepare` copies the pinned decoder to ignored `supabase/functions/_shared/magick.wasm`. Run it after `npm ci` and before serving or deploying the gateway. The static WASM file is declared in `supabase/config.toml`; the Deno import map pins both dependencies.
 
@@ -135,7 +137,7 @@ The gateway accepts JPEG/PNG/WebP up to 5 MiB, 4096 pixels per side and 16 megap
 
 Local configuration enables signup and email confirmation, a minimum 12-character password and secure email-change confirmation. The CLI 3 configuration uses `[local_smtp]` and `[auth.email] enabled = true`.
 
-To deliver confirmation and recovery emails to real inboxes through **Gmail**, run `npm run email:setup`. It prompts privately for the sending address and Google app password, checks SMTP and sends a setup message before saving `supabase/.env.local`. Restart Supabase and the Edge Functions terminal afterward. Follow [Gmail account-email setup](email.md) for the full procedure. Until that setup is completed, messages go to the local mailbox. The authentication templates are in `supabase/templates/`.
+To deliver confirmation and recovery emails through **Resend**, run `npm run email:setup:resend`. Supply a sender on your verified Resend domain, a test-recipient inbox and an API key in the private terminal prompts. The command checks SMTP and sends a setup message before saving `supabase/.env.local`. Gmail is available through `npm run email:setup`. Restart Supabase and the Edge Functions terminal afterward. Follow [account-email setup](email.md) for domain and hosted settings. Until SMTP is activated, messages go to the local mailbox. The authentication templates are in `supabase/templates/`.
 
 Allowed local Auth URLs are:
 
@@ -148,7 +150,7 @@ The browser SDK uses **PKCE**, automatic callback detection and the `iust-connec
 ### Your own profile and photos
 
 1. Open `http://localhost:5173/sign-up` and create an application account.
-2. Find its confirmation message in your real inbox if Gmail has been enabled, otherwise at `http://127.0.0.1:54324`. Open the link in the same browser. The local mailbox captures messages even for real email addresses until SMTP is enabled.
+2. Find its confirmation message in your real inbox if Resend or Gmail has been enabled, otherwise at `http://127.0.0.1:54324`. Open the link in the same browser. The local mailbox captures messages even for real email addresses until SMTP is enabled.
 3. Choose **Complete my profile**, enter your name and bio, and use **Upload your photo**. You can also add portfolio descriptions, links and images.
 4. Click **Save draft** and **Preview saved profile**. The draft and images survive reloads and signing in from another browser. Photo audience defaults to **Only me**.
 

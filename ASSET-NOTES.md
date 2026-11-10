@@ -13,13 +13,13 @@
 
 The repository owner supplied the portrait on **7 November 2026** and requested it for the **Anas Tech** website profile. [`scripts/data/profiles/anas-tech.webp`](scripts/data/profiles/anas-tech.webp) is the supplied photograph, auto-oriented, metadata-stripped and converted to WebP at **888 × 1280** (**134,518 bytes**). It was not generated or replaced with a stock face.
 
-The [profile manifest](scripts/data/profiles/anas-tech.json) records original and normalized SHA-256 hashes. The import uploads this source asset to private Supabase profile media; the website displays it through the existing image gateway. See [profile setup](docs/profiles.md).
+The [profile manifest](scripts/data/profiles/anas-tech.json) records original and normalized SHA-256 hashes. The import uploaded this source asset to private Supabase profile media. **On 9 November 2026 the owner requested removal of the profile; it is now removed and public photo access is denied.** This source file is retained as an operator import asset, outside the production frontend bundle. See [profile history and removal](docs/profiles.md).
 
 ## Campus café food photographs
 
-The **30 photographs** in `public/images/menu/` were retrieved from Wikimedia Commons on **6 November 2026** and visually reviewed. They are real food photographs, matched to the menu names or preparation styles and labelled **illustrative**. They do not depict NESCAFÉ IUST’s actual servings. The cappuccino photograph also supplies the café cover.
+The original **30 NESCAFÉ photographs** in `public/images/menu/` were retrieved from Wikimedia Commons on **6 November 2026** and visually reviewed. They are real food photographs, matched to the menu names or preparation styles and labelled **illustrative**. They do not depict NESCAFÉ IUST’s actual servings. The cappuccino photograph also supplies the café cover.
 
-The local copies total **3,284,052 bytes**. Transformations: thumbnail resizing where supplied by Wikimedia, auto-orientation, metadata stripping and WebP conversion; the application crops images to fit their cards. These copies and adaptations retain the licences listed below, including the same share-alike licence for CC BY-SA adaptations. The UI links each image to its author/source and licence and describes the changes.
+Those original copies total **3,284,052 bytes**. Transformations: thumbnail resizing where supplied by Wikimedia, auto-orientation, metadata stripping and WebP conversion; the application crops images to fit their cards. These copies and adaptations retain the licences listed below, including the same share-alike licence for CC BY-SA adaptations. The UI links each image to its author/source and licence and describes the changes.
 
 [`scripts/data/menu-photos.json`](scripts/data/menu-photos.json) records the complete metadata, original/download URLs, source dates, original SHA-1, downloaded SHA-256, final SHA-256, dimensions and byte sizes. [`scripts/data/menu-photo-sources.json`](scripts/data/menu-photo-sources.json) records the curated source choices. See [the photograph workflow](docs/cafes.md#photograph-provenance-and-updates) for preparation and replacements.
 
@@ -57,6 +57,35 @@ The local copies total **3,284,052 bytes**. Transformations: thumbnail resizing 
 | `walnut-brownie.webp` | [Walnut brownie with ice-cream.jpg](https://commons.wikimedia.org/wiki/File:Walnut_brownie_with_ice-cream.jpg) | Sirsendu.mohanta | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
 
 The user’s original menu-board photograph is a separate source for names/prices, not a food illustration. It is not distributed with the application; its receipt date and SHA-256 are recorded in the [NESCAFÉ manifest](scripts/data/cafes/nescafe-iust.json) and import audit. Its capture date remains unknown.
+
+### Brew and Brink photographs
+
+Brew and Brink uses **26 distinct photographs** for 29 listings and its cover. Six reuse the credited `cheese-fries`, `chicken-popcorn`, `plain-maggi`, `veg-burger`, `veg-momos` and `veg-sandwich` images above. The 20 additional sources below use the same documented WebP transformations, attribution and illustrative labels. Their card crops were reviewed at desktop/mobile widths on **10 November 2026**; every selected file and live HTTP response matched its recorded SHA-256. They illustrate the dish or drink style rather than this café's actual ingredients or servings.
+
+| Local filename | Original photograph / source | Author | Licence |
+| --- | --- | --- | --- |
+| `blackcurrant.webp` | [Ribena blackcurrant juice drink.jpg](https://commons.wikimedia.org/wiki/File:Ribena_blackcurrant_juice_drink.jpg) | Mx. Granger | [CC0](https://creativecommons.org/publicdomain/zero/1.0/deed.en) |
+| `chicken-roll.webp` | [Chicken-kathi-roll-recipe.jpg](https://commons.wikimedia.org/wiki/File:Chicken-kathi-roll-recipe.jpg) | Vivekpat30 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `chicken-strips.webp` | [Crispy Chicken Strips - FotoosVanRobin.jpg](https://commons.wikimedia.org/wiki/File:Crispy_Chicken_Strips_-_FotoosVanRobin.jpg) | FotoosVanRobin from Netherlands | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0) |
+| `chocolate-shake.webp` | [Chocolate milkshake, Good Stuff Eatery.jpg](https://commons.wikimedia.org/wiki/File:Chocolate_milkshake,_Good_Stuff_Eatery.jpg) | Ser Amantio di Nicolao | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `double-burger.webp` | [In n out double-double.jpg](https://commons.wikimedia.org/wiki/File:In_n_out_double-double.jpg) | CrispyCream27 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `french-fries.webp` | [French Fries.JPG](https://commons.wikimedia.org/wiki/File:French_Fries.JPG) | StockSnap | [CC0](https://creativecommons.org/publicdomain/zero/1.0/deed.en) |
+| `fried-momos.webp` | [Fried momos of Salem.jpg](https://commons.wikimedia.org/wiki/File:Fried_momos_of_Salem.jpg) | Thamizhpparithi Maari | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `green-apple-mojito.webp` | [Green Apple Mojito at Bread and Roses Cafe.jpg](https://commons.wikimedia.org/wiki/File:Green_Apple_Mojito_at_Bread_and_Roses_Cafe.jpg) | AMRIT RAISAR | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `kiwi-refresher.webp` | [Healthy kiwi juice summer recipe.jpg](https://commons.wikimedia.org/wiki/File:Healthy_kiwi_juice_summer_recipe.jpg) | Rawpixel Ltd | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) |
+| `mango-shake.webp` | [Mango milkshake.jpg](https://commons.wikimedia.org/wiki/File:Mango_milkshake.jpg) | Swathi sri srinivasa raghavan | [CC0](https://creativecommons.org/publicdomain/zero/1.0/deed.en) |
+| `orange-refresher.webp` | [Orange drink.jpg](https://commons.wikimedia.org/wiki/File:Orange_drink.jpg) | NICOLE CUNCOLIM | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `strawberry-mojito.webp` | [Strawberry Mojito (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Strawberry_Mojito_(Unsplash).jpg) | Neha Deshmukh nehadeshmukh | [CC0](https://creativecommons.org/publicdomain/zero/1.0/deed.en) |
+| `takeaway-black-coffee.webp` | [Cup of coffee and water on Finnish train.jpg](https://commons.wikimedia.org/wiki/File:Cup_of_coffee_and_water_on_Finnish_train.jpg) | JIP | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `takeaway-cold-coffee.webp` | [Harvey's Gourmet Donut Bar - 2021.07.02 - Stierch 10.jpg](https://commons.wikimedia.org/wiki/File:Harvey%27s_Gourmet_Donut_Bar_-_2021.07.02_-_Stierch_10.jpg) | Missvain | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) |
+| `takeaway-iced-americano.webp` | [Two cups of iced coffee at Coast Cafe, Worthing 2026-05-25.jpg](https://commons.wikimedia.org/wiki/File:Two_cups_of_iced_coffee_at_Coast_Cafe,_Worthing_2026-05-25.jpg) | Andy Li | [CC0](https://creativecommons.org/publicdomain/zero/1.0/deed.en) |
+| `takeaway-latte.webp` | [Latte art 2 2018-11-11.jpg](https://commons.wikimedia.org/wiki/File:Latte_art_2_2018-11-11.jpg) | FASTILY | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `takeaway-lemon-tea.webp` | [New Forest restaurant lemon tea and milk coffee](https://commons.wikimedia.org/wiki/File:HK_Wan_Chai_Hennessy_Road_%E6%96%B0%E6%A3%AE%E6%9E%97_%E8%8C%B6%E9%A4%90%E5%BB%B3_New_Forest_restaurant_drink_Lemon_Tea_n_%E5%A5%B6%E8%8C%B6_Milk_Coffee_2_paper_cups_Feb-2012.jpg) | Yaongkamd | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0) |
+| `takeaway-tea.webp` | [Fresh Milk Tea 2.jpg](https://commons.wikimedia.org/wiki/File:Fresh_Milk_Tea_2.jpg) | Gaurav Dhwaj Khadka | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `virgin-mojito.webp` | [Drinks - Virgin Mojito, Orange Juice.jpg](https://commons.wikimedia.org/wiki/File:Drinks_-_Virgin_Mojito,_Orange_Juice.jpg) | Aditijuneja2023 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `watermelon-mojito.webp` | [Watermelon Mojito-Chennai-Tamil Nadu-DED 001.jpg](https://commons.wikimedia.org/wiki/File:Watermelon_Mojito-Chennai-Tamil_Nadu-DED_001.jpg) | Evangelin5 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+
+The [supplied text menu](scripts/data/cafes/sources/brew-and-brink-menu.md) is the source for Brew and Brink's names, sizes and prices. Its integrity hash is stored in the [manifest](scripts/data/cafes/brew-and-brink.json) and database import audit.
 
 ## Historical portrait provenance
 

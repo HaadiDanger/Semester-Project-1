@@ -45,7 +45,7 @@ otp_expiry = 3600
 [auth.rate_limit]
 email_sent = 20
 
-# npm run email:setup enables Gmail through ignored supabase/.env.local.
+# npm run email:setup:resend (or email:setup for Gmail) configures ignored supabase/.env.local.
 # Supabase CLI 3 reads SUPABASE_AUTH_EMAIL_SMTP_* overrides from that file.
 [auth.email.smtp]
 enabled = false

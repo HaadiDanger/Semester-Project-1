@@ -4,7 +4,7 @@ Use [setup](setup.md) for installation and [the implementation report](implement
 
 ## Accounts, roles and authorization
 
-Signup confirmations, confirmation resends and password-reset messages are delivered by Supabase Auth. Use [Gmail account-email setup](email.md) to configure the sender, templates, rate limits and local or hosted redirects. Application login remains email-and-password based.
+Signup confirmations, confirmation resends and password-reset messages are delivered by Supabase Auth. Use [Resend and Gmail account-email setup](email.md) to configure the sender, templates, rate limits and local or hosted redirects. Application login remains email-and-password based.
 
 | Actor | Application access |
 | --- | --- |
@@ -78,13 +78,13 @@ The development banner and per-record sample labels reflect the protected backen
 
 ## Canteen catalogue and price history
 
-The current local catalogue contains **NESCAFÉ IUST**, with **30 published menu-board prices and 30 credited food photographs** imported on 6 November. The source is the user-supplied menu photograph. Development fixtures remain profiles-only; genuine café records are independent of that batch. See [café imports and maintenance](cafes.md) for the manifest, source record, SQL export and photo attribution.
+The current local catalogue contains **BREW AND BRINK’s 29 published text-menu listings**, imported on 10 November, and **NESCAFÉ IUST’s 30 menu-board listings**, imported on 6 November. Both use the user-supplied menus and credited illustrative photographs. Development fixtures remain profiles-only; genuine café records are independent of that batch. See [café imports and maintenance](cafes.md) for manifests, source records, SQL export and photo attribution.
 
 ### Published café menus
 
-`/canteen-prices` reads `get_canteen_menu`, which returns published genuine listings with source labels and photo credits. `/canteen-prices?view=compare` uses the stricter comparison contract below. The original photograph's capture date, serving sizes and current availability were not supplied; the imported entries therefore have no source observation date or comparable portion.
+`/canteen-prices` reads `get_canteen_menu`, which returns published genuine listings with café-specific sections, source types/labels, size variants and photo credits. `/canteen-prices?view=compare` uses the stricter comparison contract below. Supplied size labels are retained, but neither menu supplies an observation date or exact comparable quantity.
 
-In `/admin` → **Canteen prices** → **Manage price**, genuine administrators can set the public source label, known photograph date, curated photo, display order and publication state. Each save requires the current listing version and a reason. A replacement price hides the prior listing until the current amount is explicitly published. Withdrawal, verification revocation, catalogue retirement and unpublication also remove it. Menu browsing reports documented prices without an availability or freshness claim; comparison eligibility still requires all checks below.
+In `/admin` → **Canteen prices** → **Manage price**, genuine administrators can set the public source label/type, known source date, curated photo, display order and publication state. Each save requires the current listing version and a reason. A replacement price hides the prior listing until the current amount is explicitly published. Withdrawal, verification revocation, catalogue retirement and unpublication also remove it. Menu browsing reports documented prices without an availability or freshness claim; comparison eligibility still requires all checks below.
 
 The importer attributes the initial prices to `cafe-menu-import-cli`, records an instance-bound manifest hash and creates no Auth account or role. Matching reruns leave staff changes intact; changed manifests are rejected after a completed import. Maintain later prices through append-only history and publication controls.
 

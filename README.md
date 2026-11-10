@@ -6,7 +6,7 @@ The original charcoal, mint and lavender design, fluid desktop proportions, two-
 
 ## Run the local application
 
-The local setup, verified on **7 November 2026**, has **Anas Tech’s profile and supplied portrait**, **45 labelled sample profiles** and **NESCAFÉ IUST’s 30-item menu**. Café names, menu items and prices are stored in Supabase, alongside profile/photo/portfolio data. Keep Docker Desktop running and use Node.js 24.
+The local setup, checked on **10 November 2026**, has **45 publicly listed sample profiles**, **BREW AND BRINK’s 29-item menu** and **NESCAFÉ IUST’s 30-item menu**. Anas Tech has been removed from public discovery, its profile page and public photo access. Café names, menu items and prices are stored in Supabase, alongside profile/photo/portfolio data. Keep Docker Desktop running and use Node.js 24.
 
 For this configured checkout, restart from the repository root. In one terminal:
 
@@ -24,30 +24,29 @@ npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 
 Open **http://localhost:5173**. Supabase retains the database between restarts. For a fresh checkout, run `npm ci` and follow **[Local Supabase setup](docs/setup.md)** to inspect the database and generate the ignored configuration with `npm run connect:local`.
 
-### Anas Tech profile
+### Browse campus cafés
 
-**[Anas Tech](http://localhost:5173/student/75cbf346-a3b7-4e17-b9e8-7dbd52f7293e)** has the supplied portrait, a tech-focused introduction and three technology skills. The profile is stored in Supabase alongside the directory's existing entries. See **[profile setup](docs/profiles.md)** for the repeatable import, placeholder email and locally saved sign-in credentials.
+Open **http://localhost:5173/canteen-prices** and use **Choose café**. **BREW AND BRINK** has **29 listings in five sections**, priced **₹15–₹170**, with the supplied Small/Large sizes. **NESCAFÉ IUST** has **30 listings in four sections**, priced **₹15–₹120**. Both support category/search/budget filters and price sorting. Names and amounts come from the supplied menus; food photographs are real, credited illustrations served locally.
 
-### Browse NESCAFÉ IUST
-
-Open **http://localhost:5173/canteen-prices** for **30 items in four sections**, priced **₹15–₹120**, with category/search/budget filters and price sorting. Names and amounts were transcribed from the supplied menu-board photograph; all food photographs are real, credited illustrations served locally.
-
-The café is already imported in this checkout’s local database. On a fresh database, apply all migrations, inspect the instance UUID and run:
+Both cafés are imported in this checkout’s local database. On a fresh database, apply all migrations, inspect the instance UUID and run:
 
 ```sh
 npm run menu:import -- --cafe nescafe-iust --instance YOUR_INSPECTED_INSTANCE_UUID
+npm run menu:import -- --cafe brew-and-brink --instance YOUR_INSPECTED_INSTANCE_UUID
 ```
 
-See **[Café setup and maintenance](docs/cafes.md)** for the source record, repeatable import, publication controls and photograph workflow. Exact-portion comparisons are at `/canteen-prices?view=compare`; menu-board listings identify the supplied prices without assuming an observation date or serving size.
+See **[Café setup and maintenance](docs/cafes.md)** for source records, repeatable imports, publication controls and the photograph workflow. Exact-portion comparisons are at `/canteen-prices?view=compare`; menu listings preserve supplied size labels without assuming exact quantities or observation dates.
 
-### Send account emails with Gmail
+### Send account emails with Resend
 
-Run **`npm run email:setup`** and enter your Gmail address and a [Google app password](https://myaccount.google.com/apppasswords) in the private terminal prompts. The command verifies Gmail, sends a test email to that address and saves server-side SMTP settings. Restart Supabase with `npx supabase stop` followed by `npx supabase start`, then restart the Edge Functions terminal. Signup confirmations and password-reset emails will use Gmail. See **[Gmail email setup](docs/email.md)** for the complete steps and delivery checks.
+Run **`npm run email:setup:resend`** with a **verified Resend sending domain**, **API key**, and **test-recipient inbox** ready. The command prompts privately for the key, checks Resend, sends a test email and saves server-side SMTP settings. Restart Supabase with `npx supabase stop` followed by `npx supabase start`, then restart the Edge Functions terminal. Signup confirmations and password-reset emails will use Resend. See **[Email setup](docs/email.md)** for domain setup, hosted Supabase settings and delivery checks. Gmail setup is available through `npm run email:setup`.
+
+Resend support is ready; external delivery awaits your sender credentials. Until activation, this local stack captures account emails in its development mailbox.
 
 ### Create your profile and upload photos
 
 1. Open **http://localhost:5173/sign-up** and create your own application account with a password of at least 12 characters.
-2. Find your confirmation email in your inbox after Gmail setup, or in the local mailbox at **http://127.0.0.1:54324** before setup. Open its link in the **same browser** where you registered.
+2. Find your confirmation email in your inbox after email setup, or in the local mailbox at **http://127.0.0.1:54324** before setup. Open its link in the **same browser** where you registered.
 3. Go to **My profile**, enter your name/bio, choose **Upload your photo**, and add portfolio entries/images as desired.
 4. Click **Save draft**, then **Preview saved profile**. JPEG, PNG and WebP are supported up to 5 MiB and 4096 px per side.
 
@@ -69,7 +68,7 @@ npm run preview
 - Separate campus-eligibility and content review, publication controls, reports and profile-deletion requests.
 - Database discovery with combined filters, counts, pagination, spotlight profiles and detail pages.
 - Administrator account review, reference editing/merges, role management, settings and audit history.
-- Database-backed campus café menus, source-labelled prices, real food-photo credits and administrator publication controls. NESCAFÉ IUST is the first café.
+- Database-backed campus café menus for BREW AND BRINK and NESCAFÉ IUST, source-labelled prices, real food-photo credits and administrator publication controls.
 - Exact-portion INR canteen comparisons, append-only price/verification history and private source evidence. Freshness starts at **30 days**.
 - Private raster uploads, metadata-stripped WebP processing, permission-checked image streaming and a cleanup worker.
 - An opt-in, loopback-only seed of **45 labelled development profiles**, including Mustafa Shahzad and Hashim. It creates 46 fixture Auth accounts including a sample administrator; 45 is a dataset size, not an enrollment limit. `npm run seed:dev -- --profiles-only` creates no canteen fixtures and preserves genuine café data. Ordinary reruns preserve the manifest's saved scope; illustrative comparison cases require a separate explicit opt-in.
@@ -88,16 +87,16 @@ npm run lint
 npm run build
 ```
 
-On **7 November**, all **72 Node tests**, lint and the production build passed. The real local database has all **eight migrations** applied. Anas Tech’s discovery card and profile passed live checks at **360px and 1440px**, including exact portrait-byte verification, sign-in, reload, sign-out, repeat-import preservation and private credential-file denial. SQL lint reported **27 warnings and no errors**. The last full Chromium regression suite passed **28/28** on **6 November**.
+On **10 November**, all **77 Node tests**, **8 targeted café Chromium checks**, lint and the production build passed. Live API checks matched every Brew and Brink name, size and amount to the supplied text and verified all 26 selected photo files. The real local database has all **nine migrations** applied. SQL lint reported **27 warnings and no errors**; the last full Chromium regression suite passed **28/28** on **6 November**.
 
-Real local Auth/PostgREST/Storage/Edge integration, profile/portfolio persistence and confirmation/resend/password-recovery flows also passed. See the [implementation report](docs/implementation-report.md) for evidence and remaining acceptance work. Gmail activation remains paused pending sender credentials through `npm run email:setup`.
+Real local Auth/PostgREST/Storage/Edge integration, profile/portfolio persistence and confirmation/resend/password-recovery flows also passed. See the [implementation report](docs/implementation-report.md) for evidence and remaining acceptance work. External email activation requires sender credentials through [email setup](docs/email.md).
 
 ## Handoff documents
 
 - [Setup and local verification](docs/setup.md)
-- [Anas Tech profile and photo](docs/profiles.md)
+- [Imported profile history and removal](docs/profiles.md)
 - [Café menus, imports and maintenance](docs/cafes.md)
-- [Gmail account-email setup](docs/email.md)
+- [Resend and Gmail account-email setup](docs/email.md)
 - [Operations, moderation, retention, recovery and deployment](docs/operations.md)
 - [Implementation and verification report](docs/implementation-report.md)
 - [Asset provenance and font licenses](ASSET-NOTES.md)
