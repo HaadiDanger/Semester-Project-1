@@ -1,0 +1,13 @@
+{
+  "key": "nescafe-hot-drink-cups",
+  "cafe_key": "nescafe-iust",
+  "cafe_name": "NESCAFÉ IUST",
+  "reason": "User request of 12 November 2026: distinct disposable-cup photographs appropriate to Cappuccino, Cafe Latte, Cafe Mocha and Hot Chocolate; keep the cappuccino cover consistent.",
+  "cover": { "from": "cappuccino", "to": "takeaway-cappuccino" },
+  "items": [
+    { "name": "Cappuccino", "from": "cappuccino", "to": "takeaway-cappuccino" },
+    { "name": "Cafe Latte", "from": "cafe-latte", "to": "takeaway-latte" },
+    { "name": "Cafe Mocha", "from": "cafe-mocha", "to": "takeaway-mocha" },
+    { "name": "Hot Chocolate", "from": "hot-chocolate", "to": "takeaway-hot-chocolate" }
+  ]
+}

@@ -4,7 +4,7 @@ import { ArrowUpRight, Sparkles } from "lucide-react"
 import SkillTag from "./SkillTag"
 import Avatar from "./Avatar"
 export default function FeaturedProfileCard({ person, index = 0 }) {
-  return <motion.article className="feature-card" initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .1 }} transition={{ duration: .5, delay: index * .06, ease: [.22, 1, .36, 1] }}>
+  return <motion.article className="feature-card" initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .1 }} transition={{ duration: .65, delay: index * .09, ease: [.22, 1, .36, 1] }}>
     <Link to={`/student/${person.id}`} className="feature-photo block" aria-label={`View ${person.name}'s profile`}>
       <Avatar name={person.name} assetId={person.photoAssetId} size="art" />
       <span className="feature-label"><Sparkles size={12} /> {person.isSample ? "Development sample" : "Community spotlight"}</span>

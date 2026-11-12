@@ -32,6 +32,8 @@
   { "key": "takeaway-tea", "title": "File:Fresh Milk Tea 2.jpg", "alt": "Milk tea in a yellow disposable paper cup" },
   { "key": "takeaway-latte", "title": "File:Latte art 2 2018-11-11.jpg", "alt": "Coffee with milk foam in a disposable paper cup with a brown sleeve" },
   { "key": "takeaway-cappuccino", "title": "File:A takeout cappuccino in a brown cup.jpg", "alt": "A cappuccino in a brown disposable paper cup" },
+  { "key": "takeaway-mocha", "title": "mocha", "source_url": "https://www.flickr.com/photos/lara604/3684264913/", "source_date": "2009-07-01", "alt": "A cafe mocha with chocolate flakes and milk-foam art in a patterned disposable paper cup" },
+  { "key": "takeaway-hot-chocolate", "title": "File:2020-09-11 12 15 05 A just-prepared cup of hot chocolate from a Starbucks hot beverage dispenser in Chantilly, Fairfax County, Virginia.jpg", "alt": "Fresh hot chocolate with cocoa-coloured foam in a white disposable foam cup" },
   { "key": "takeaway-coffee", "title": "File:Coffee-cup-sleeve.jpg", "alt": "Coffee in a lidded disposable paper cup with a cardboard sleeve" },
   { "key": "takeaway-black-coffee", "title": "File:Cup of coffee and water on Finnish train.jpg", "alt": "Black coffee in a disposable paper cup beside a sealed cup of water" },
   { "key": "takeaway-lemon-tea", "title": "File:HK Wan Chai Hennessy Road 新森林 茶餐廳 New Forest restaurant drink Lemon Tea n 奶茶 Milk Coffee 2 paper cups Feb-2012.jpg", "alt": "Tea with lemon slices in a disposable paper cup", "crop": { "x": 0.49, "y": 0.05, "width": 0.51, "height": 0.92 } },

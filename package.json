@@ -22,6 +22,8 @@
     "cleanup:dev": "node scripts/cleanup-dev.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource-variable/newsreader": "^5.3.0",
     "@supabase/supabase-js": "2.118.0",
     "framer-motion": "^14.0.0",
     "lucide-react": "^1.51.0",

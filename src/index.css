@@ -1,6 +1,6 @@
 @import "./fonts.css";
 @import "tailwindcss";
-@theme { --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif; --font-serif: "Fraunces", Georgia, serif; }
+@theme { --font-sans: "Archivo Variable", "Archivo Fallback", Arial, sans-serif; --font-serif: "Newsreader Variable", "Newsreader Fallback", Georgia, serif; }
 :root { color-scheme: dark; --paper:#0d1217; --surface:#151d24; --ink:#eef3f4; --muted:#a8b5bf; --line:#2a363f; --green:#a7ddd4; --soft:#203239; --rust:#bcadf4; }
 html { scroll-behavior:smooth; scroll-padding-top:100px; }
 body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-sans); -webkit-font-smoothing:antialiased; }

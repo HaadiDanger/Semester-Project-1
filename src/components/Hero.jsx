@@ -7,15 +7,15 @@ import Avatar from "./Avatar"
 export default function Hero({ search, onSearchChange, onSearchSubmit, people }) {
   const portraits = people.slice(0, 2)
   return <section className="hero"><div className="container hero-grid">
-    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, ease: [.22, 1, .36, 1] }}>
+    <motion.div className="hero-intro" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, ease: [.22, 1, .36, 1] }}>
       <p className="hero-kicker"><span className="status-dot" /> A little closer. A lot more possible.</p>
       <h1 className="hero-title serif-title">Good things start<br />with <em>your people.</em></h1>
       <p className="hero-copy">Meet the makers, players, cooks, and doers at IUST. Discover a skill, find a collaborator, or share what you love doing.</p>
       <div className="hero-search"><SearchBar value={search} onChange={onSearchChange} onSubmit={onSearchSubmit} placeholder="Find a person, skill, or department" label="Search the campus directory" /></div>
       <p className="hero-footnote"><Users size={14} /> Different disciplines. One campus community.</p>
     </motion.div>
-    <motion.div className="hero-art" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .8, delay: .1 }}>
-      <div className="hero-orbit" aria-hidden="true" /><p className="art-label">Made of people. Full of possibility.</p>
+    <motion.div className="hero-art" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .9, delay: .1, ease: [.22, 1, .36, 1] }}>
+      <div className="hero-orbit" aria-hidden="true"><span className="orbit-runner orbit-runner-outer" /><span className="orbit-runner orbit-runner-inner" /></div><p className="art-label">Made of people. Full of possibility.</p><span className="art-index" aria-hidden="true">IUST / KASHMIR<br />IN GOOD COMPANY.</span>
       {portraits.map((person, i) => <Link key={person.id} to={`/student/${person.id}`} className={`hero-mini ${i === 0 ? "mini-one" : "mini-two"}`} aria-label={`Meet ${person.name}`}>
         <Avatar name={person.name} assetId={person.photoAssetId} size="art" />
         <strong>{person.name} <ArrowUpRight size={12} className="inline" /></strong><small>{person.isSample ? "Sample · " : ""}{person.skills[0]}</small>

@@ -18,7 +18,7 @@
 | Noodles & pasta | 8 | ₹30–₹70 |
 | **Total** | **30** | **₹15–₹120** |
 
-The initial NESCAFÉ import created **1 genuine café, 4 food categories, 30 menu items, 30 offerings, 30 price records, 30 published entries and 30 photo records**. Cappuccino’s photograph also supplies the cover, so the full page displays 31 images from 30 files. Food photos are real Wikimedia photographs matched to the named dish or preparation style; they are labelled illustrative and link to their authors and licences. See [all photo credits](../ASSET-NOTES.md#campus-café-food-photographs).
+The initial NESCAFÉ import created **1 genuine café, 4 food categories, 30 menu items, 30 offerings, 30 price records, 30 published entries and 30 photo records**. Cappuccino’s photograph also supplies the cover, so the full page displays 31 images from 30 files. The **12 November** photo-only update replaces Cappuccino, Cafe Latte, Cafe Mocha and Hot Chocolate with distinct disposable-cup photographs and keeps the cover consistent. The original import remains unchanged. Food photos are real, openly licensed photographs matched to the named dish or preparation style; they are labelled illustrative and link to their authors and licences. See [all photo credits](../ASSET-NOTES.md#campus-café-food-photographs).
 
 ## Brew and Brink source and inventory
 
@@ -47,9 +47,10 @@ npx supabase migration list
 npx supabase db query --read-only --file supabase/operator/inspect.sql
 npm run menu:import -- --cafe nescafe-iust --instance YOUR_INSPECTED_INSTANCE_UUID
 npm run menu:import -- --cafe brew-and-brink --instance YOUR_INSPECTED_INSTANCE_UUID
+npm run menu:import -- --photo-update nescafe-hot-drink-cups --instance YOUR_INSPECTED_INSTANCE_UUID
 ```
 
-Replace the placeholder with the inspected database UUID. The command checks the configured local API and database container, validates every used photo’s hash/dimensions, and performs a single transaction. For the already configured checkout, the instance is `43bbe85a-f1a8-403a-8776-ee2a5a57d87f` and both imports have completed.
+Replace the placeholder with the inspected database UUID. Each command checks the configured local API and database container, validates every used photo’s hash/dimensions, and performs a single transaction. For the already configured checkout, the instance is `43bbe85a-f1a8-403a-8776-ee2a5a57d87f`; both imports and the four-drink photo update have completed.
 
 Open **http://localhost:5173/canteen-prices**. Category, text, budget and sorting controls query the database and retain their state in the URL. The default page holds 36 items, with a bounded 1–48-item RPC page size. Whole-rupee prices omit `.00`; fractional prices retain up to two decimal places.
 
@@ -103,16 +104,36 @@ The existing `get_canteen_prices` API continues to require known equivalent port
 
 | Path | Purpose |
 | --- | --- |
-| [`scripts/data/menu-photo-sources.json`](../scripts/data/menu-photo-sources.json) | Curated Wikimedia file titles, stable keys, descriptive alt text and any explicit author/licence metadata. |
+| [`scripts/data/menu-photo-sources.json`](../scripts/data/menu-photo-sources.json) | Curated Wikimedia file titles or reviewed Flickr source pages, stable keys, descriptive alt text and source metadata. |
 | [`scripts/data/menu-photos.json`](../scripts/data/menu-photos.json) | Retrieved metadata, original/download URLs and hashes, author, licence, source/retrieval dates, transformations and final WebP dimensions/hash/size. |
 | [`public/images/menu/`](../public/images/menu/) | Locally served WebP photographs; selected files are hash- and dimension-checked during import. |
-| [`scripts/prepare-menu-photos.mjs`](../scripts/prepare-menu-photos.mjs) | Operator-only Wikimedia download and raster normalization tool. |
+| [`scripts/prepare-menu-photos.mjs`](../scripts/prepare-menu-photos.mjs) | Operator-only licensed-photo download and raster normalization tool. |
 
-For new source selections, edit the source list and run `npm run menu:photos`, or select specific keys with `npm run menu:photos -- PHOTO_KEY`. Matching existing files are hash-checked and reused. The tool requires complete attribution and accepts the recorded CC BY, CC BY-SA, CC0 or public-domain licences. It auto-orients, strips metadata and converts downloaded photographs to WebP through the real image decoder; the UI crops them to fit.
+For new source selections, edit the source list and run `npm run menu:photos`, or select specific keys with `npm run menu:photos -- PHOTO_KEY`. Matching existing files are hash-checked and reused. The tool requires complete attribution and accepts the recorded CC BY, CC BY-SA, CC0 or public-domain licences from Wikimedia. A Flickr source records its exact `source_url` and reviewed taken `source_date`; the tool checks the live source identity, author, CC BY/CC BY-SA licence and display-image identity before downloading. It auto-orients, strips metadata and converts photographs to WebP through the real image decoder; the UI crops them to fit. No external photograph requests are made by the application.
 
 Visually inspect each photograph and its source page, then check the final mobile/desktop crop. The preparation tool validates raster data and metadata; selection still requires checking the actual subject and photographic provenance. Keep the credits in [asset notes](../ASSET-NOTES.md) synchronized and retain each image’s applicable licence, including share-alike terms for adaptations.
 
 For an already imported café, keep existing photo keys, files and metadata stable. A replacement should use a new key/path, be added to `private.menu_photos` through an explicit operator update or a subsequent café import, and then be selected in the administrator publication form. The original completed import manifest remains the record of the first load. Preparing new files alone does not update database photo metadata.
+
+### Apply the four-drink NESCAFÉ photo update
+
+For an existing imported database, inspect its UUID and run only:
+
+```sh
+npm run menu:import -- --photo-update nescafe-hot-drink-cups --instance YOUR_INSPECTED_INSTANCE_UUID
+```
+
+[`nescafe-hot-drink-cups.json`](../scripts/data/cafes/photo-updates/nescafe-hot-drink-cups.json) targets exactly **Cappuccino → `takeaway-cappuccino`**, **Cafe Latte → `takeaway-latte`**, **Cafe Mocha → `takeaway-mocha`**, **Hot Chocolate → `takeaway-hot-chocolate`**, and the Cappuccino cover. The guarded transaction inserts missing immutable photo metadata, updates these four photo pointers and increments their listing versions; publication, source labels, prices, other listings, Brew and Brink and profiles remain unchanged. One `menu.photos.update` audit records the plan and its hash separately from the original imports. A matching rerun is a no-op, including after later staff edits. Different completed content, stale pointers/covers, metadata conflicts and wrong instances reject the entire transaction.
+
+For a fresh database, use all three setup commands above: original NESCAFÉ import, Brew and Brink import, then this photo update. Do **not** blindly run the older [`nescafe-disposable-cups.json`](../scripts/data/cafes/photo-updates/nescafe-disposable-cups.json) plan as well; it targets a different historical scope and shares the cover/coffee pointers. If an older plan or staff edit already changed them, inspect and prepare a new explicit plan instead of bypassing the conflict guards.
+
+To export for a separately inspected target without modifying it:
+
+```sh
+npm run menu:import -- --photo-update nescafe-hot-drink-cups --instance YOUR_TARGET_INSTANCE_UUID --operator YOUR_OPERATOR_LABEL --sql .dev-seed/nescafe-hot-drink-cups.sql
+```
+
+Create the ignored output directory first and use a new filename. Execute the reviewed SQL after that target's original import, following the [SQL export requirements](#sql-export-for-another-database); deploy the matching public WebPs with the frontend. A GitHub push alone does not update another database.
 
 ## Add the next café
 

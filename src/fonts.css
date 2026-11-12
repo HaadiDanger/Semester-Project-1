@@ -1,56 +1,56 @@
+/*
+ * Self-hosted, weight-only Latin WOFF2 subsets; no third-party font requests.
+ * Licences: /fonts/archivo-OFL.txt and /fonts/newsreader-OFL.txt.
+ * Local fallback metrics are matched to the rendered campus copy in Chromium.
+ */
 @font-face {
-  font-family: 'Fraunces';
+  font-family: "Archivo Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../node_modules/@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Newsreader Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Newsreader Variable";
   font-style: italic;
-  font-weight: 400;
   font-display: swap;
-  src: url(/fonts/campus-font-0.ttf) format('truetype');
+  font-weight: 200 800;
+  src: url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2") format("woff2-variations");
 }
+
 @font-face {
-  font-family: 'Fraunces';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(/fonts/campus-font-1.ttf) format('truetype');
+  font-family: "Archivo Fallback";
+  src: local("Arial");
+  size-adjust: 98.414%;
+  ascent-override: 89.418%;
+  descent-override: 21.338%;
+  line-gap-override: 0%;
 }
+
 @font-face {
-  font-family: 'Fraunces';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(/fonts/campus-font-2.ttf) format('truetype');
+  font-family: "Newsreader Fallback";
+  src: local("Georgia");
+  size-adjust: 96.98%;
+  ascent-override: 76.305%;
+  descent-override: 27.841%;
+  line-gap-override: 0%;
 }
+
 @font-face {
-  font-family: 'Fraunces';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(/fonts/campus-font-3.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Outfit';
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-  src: url(/fonts/campus-font-4.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Outfit';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(/fonts/campus-font-5.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Outfit';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(/fonts/campus-font-6.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Outfit';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(/fonts/campus-font-7.ttf) format('truetype');
+  font-family: "Newsreader Fallback";
+  font-style: italic;
+  src: local("Georgia Italic");
+  size-adjust: 86.626%;
+  ascent-override: 85.425%;
+  descent-override: 31.168%;
+  line-gap-override: 0%;
 }

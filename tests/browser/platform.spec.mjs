@@ -4,7 +4,8 @@ import { createBrowserBackend } from "./backend.mjs"
 import { rpc } from "../helpers/database.mjs"
 import { sampleEvidence } from "../../scripts/fixtures/sample-evidence.mjs"
 import { saveProfile } from "../helpers/records.mjs"
-import { attachMotion, effects, recordMotion } from "./motion.mjs"
+import { attachMotion, effects, recordMotion, translations } from "./motion.mjs"
+import { settleCards, textContrast } from "./design.mjs"
 
 let backend
 test.beforeAll(async () => { backend = await createBrowserBackend() })
@@ -32,6 +33,73 @@ async function settled(page) {
   await expect(page.locator("#main-content > div")).toHaveCSS("opacity", "1")
   if (await page.locator(".hero-art").count()) await expect(page.locator(".hero-art")).toHaveCSS("opacity", "1")
   if (await page.locator("#main-content > div > article").count()) await expect(page.locator("#main-content > div > article")).toHaveCSS("opacity", "1")
+}
+
+test("[mocked API] editorial typography is local, reading surfaces stay legible, and short pages keep their footer", async ({ page }, testInfo) => {
+  const fonts = new Set()
+  page.on("request", request => { if (request.resourceType() === "font") fonts.add(request.url()) })
+  await page.goto("/")
+  await settled(page)
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(29, 41, 39)")
+  await expect(page.locator("html")).toHaveCSS("color-scheme", "dark")
+  await expect(page.locator("body")).toHaveCSS("color", "rgb(236, 231, 220)")
+  await expect(page.locator(".site-header")).toHaveCSS("backdrop-filter", "none")
+  expect(await page.locator("body").evaluate(node => getComputedStyle(node).fontFamily)).toContain("Archivo Variable")
+  expect(await page.locator(".hero-title").evaluate(node => getComputedStyle(node).fontFamily)).toContain("Newsreader Variable")
+  expect(fonts.size).toBe(3)
+  expect([...fonts].every(url => new URL(url).origin === "http://127.0.0.1:4173" && url.endsWith(".woff2"))).toBe(true)
+  await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(3)
+  const ledger = []
+  for (const path of ["/", "/discover", `/student/${backend.publicMember.id}`, "/sign-in", "/canteen-prices"]) {
+    await page.goto(path)
+    await settled(page)
+    await settleCards(page)
+    const contrast = await textContrast(page, ".nav-link,.footer-note,.development-banner,.hero-copy,.hero-kicker,.hero-title em,.art-label,.hero-mini small,.eyebrow,.section-description,.profile-card-name,.profile-card-bio,.skill-tag,.filter-label > span,.results-meta,.pagination .muted,.text-link,.btn,.auth-page .muted,.profile-sections .muted")
+    expect(contrast.filter(item => item.ratio < 4.5), `Text contrast on ${path}`).toEqual([])
+    ledger.push({ path, minimumTextContrast: Math.min(...contrast.map(item => item.ratio)) })
+    await noOverflow(page)
+    if (["/discover", "/sign-in"].includes(path)) await page.screenshot({ path: testInfo.outputPath(`${path.slice(1)}-desktop.png`), fullPage: true })
+  }
+  await page.goto("/sign-in")
+  await settled(page)
+  const footer = await page.locator(".site-footer").boundingBox()
+  expect(footer.y + footer.height).toBeGreaterThanOrEqual(999)
+  await testInfo.attach("editorial-reading-surface-contrast", { body: JSON.stringify(ledger, null, 2), contentType: "application/json" })
+})
+
+for (const width of [360, 1440]) {
+  test(`[mocked API] delayed local fonts preserve hero geometry at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 1000 })
+    await page.addInitScript(() => {
+      window.__fontShifts = []
+      new PerformanceObserver(list => { for (const entry of list.getEntries()) if (!entry.hadRecentInput) window.__fontShifts.push(entry.value) }).observe({ type: "layout-shift", buffered: true })
+    })
+    let release, held = 0
+    const gate = new Promise(resolve => { release = resolve })
+    await page.route("**/*.woff2", async route => { held++; await gate; await route.continue() })
+    const geometry = () => page.locator(".hero-title,.hero-copy,.hero-search,.hero-art").evaluateAll(nodes => nodes.map(node => ({ class: node.className, top: node.getBoundingClientRect().top, height: node.getBoundingClientRect().height })))
+    let before
+    try {
+      await page.goto("/", { waitUntil: "domcontentloaded" })
+      await expect.poll(() => held).toBe(3)
+      await expect(page.locator(".hero-art")).toHaveCSS("opacity", "1")
+      await expect(page.locator(".feature-card")).toHaveCount(3)
+      await expect(page.locator(".profile-card")).toHaveCount(12)
+      before = await geometry()
+      await page.evaluate(() => { window.__fontShifts = [] })
+    } finally { release() }
+    await page.evaluate(() => document.fonts.ready)
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    const after = await geometry()
+    const shifts = await page.evaluate(() => window.__fontShifts.reduce((total, value) => total + value, 0))
+    for (let i = 0; i < before.length; i++) {
+      expect(Math.abs(after[i].top - before[i].top), before[i].class).toBeLessThanOrEqual(1)
+      expect(Math.abs(after[i].height - before[i].height), before[i].class).toBeLessThanOrEqual(1)
+    }
+    expect(shifts).toBeLessThan(.02)
+    await testInfo.attach("delayed-font-layout", { body: JSON.stringify({ width, before, after, fontSwapLayoutShift: shifts }, null, 2), contentType: "application/json" })
+    await page.screenshot({ path: testInfo.outputPath(`home-${width}-viewport.png`) })
+  })
 }
 
 test("[mocked API] public discovery combines filters, paginates without duplicates, and preserves mounted cards", async ({ page }) => {
@@ -368,7 +436,7 @@ test("[mocked API] every administrator section fits mobile and desktop; private 
   const report = await rpc(backend.db, reporter.id, "report_profile", { p_profile_id: backend.publicMember.id, p_category: "other", p_description: "Browser independent resolution example.", p_request_id: randomUUID() })
   await signIn(page, backend.admin, "/admin")
   const tabs = page.getByRole("navigation", { name: "Administration sections" })
-  for (const width of [360, 1440]) {
+  for (const width of [360, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 })
     for (const label of ["Overview", "Accounts & profiles", "Reference data", "Canteen prices", "Skill suggestions", "Reports", "Audit history", "Settings"]) {
       await tabs.getByRole("button", { name: label, exact: true }).click()
@@ -435,27 +503,63 @@ test("[mocked API] price editor appends a correction, validates uploaded evidenc
   expect(history.items[0].verifications.map(event => event.decision)).toEqual(["revoked", "verified"])
 })
 
-test("[mocked API] normal motion preserves entrances, hover effects, viewport-once lifetime and pathname route exits", async ({ page }, testInfo) => {
+test("[mocked API] enhanced motion shows real orbits, entrances and hover effects while retaining viewport-once lifetime and route exits", async ({ page }, testInfo) => {
   await recordMotion(page)
   await page.emulateMedia({ reducedMotion: "no-preference" })
   await page.goto("/")
   await settled(page)
   const route = page.locator("#main-content > div"), hero = page.locator(".hero-grid > div").first(), art = page.locator(".hero-art")
+  const entrance = async (node, duration, y, delay = 0) => {
+    expect((await effects(node)).some(effect => effect.duration === duration && effect.delay === delay)).toBe(true)
+    const samples = await translations(node)
+    expect(samples.some(sample => sample.y === y), `Initial ${y}px entrance`).toBe(true)
+    expect(samples.some(sample => sample.y > 0 && sample.y < y), "Observed intermediate translation").toBe(true)
+    await expect.poll(() => node.evaluate(element => new DOMMatrixReadOnly(getComputedStyle(element).transform).m42)).toBeCloseTo(0, 2)
+  }
   expect((await effects(route)).some(effect => effect.duration === 180)).toBe(true)
-  expect((await effects(hero)).some(effect => effect.duration === 650)).toBe(true)
-  expect((await effects(art)).some(effect => effect.duration === 800 && effect.delay === 100)).toBe(true)
+  await entrance(hero, 800, 28)
+  await entrance(art, 900, 24, 100)
   const sheen = await page.locator(".hero").evaluate(node => { const style = getComputedStyle(node, "::before"); return { duration: style.animationDuration, count: style.animationIterationCount, position: style.backgroundPosition } })
   expect(sheen.duration).toBe("18s"); expect(sheen.count).toBe("infinite")
   await expect.poll(() => page.locator(".hero").evaluate(node => getComputedStyle(node, "::before").backgroundPosition)).not.toBe(sheen.position)
+  await expect(page.locator(".hero-orbit")).toHaveAttribute("aria-hidden", "true")
+  await expect(page.locator(".hero-orbit")).toHaveCSS("pointer-events", "none")
+  await expect(page.locator(".orbit-runner")).toHaveCount(2)
+  for (const [selector, duration, direction, diameter] of [[".orbit-runner-outer", "16s", "normal", "14px"], [".orbit-runner-inner", "24s", "reverse", "10px"]]) {
+    const orbit = page.locator(selector)
+    await expect(orbit).toHaveCSS("animation-duration", duration)
+    await expect(orbit).toHaveCSS("animation-direction", direction)
+    await expect(orbit).toHaveCSS("animation-iteration-count", "infinite")
+    const orbitFrames = await orbit.evaluate(node => node.getAnimations()[0].effect.getKeyframes())
+    expect(orbitFrames.every(frame => Object.keys(frame).every(key => ["offset", "computedOffset", "easing", "composite", "transform"].includes(key)))).toBe(true)
+    const position = await orbit.evaluate(node => getComputedStyle(node).transform)
+    await expect.poll(() => orbit.evaluate(node => getComputedStyle(node).transform)).not.toBe(position)
+    expect(await orbit.evaluate(node => getComputedStyle(node, "::before").width)).toBe(diameter)
+    expect(await orbit.evaluate(node => getComputedStyle(node).borderTopColor)).not.toBe("rgba(0, 0, 0, 0)")
+  }
+  const mini = page.locator(".hero-mini").first()
+  await expect(mini).toHaveCSS("animation-duration", "8s")
+  const floatFrames = await mini.evaluate(node => node.getAnimations()[0].effect.getKeyframes())
+  expect(floatFrames.every(frame => Object.keys(frame).every(key => ["offset", "computedOffset", "easing", "composite", "translate"].includes(key)))).toBe(true)
+  expect(floatFrames.some(frame => frame.translate?.includes("-7px"))).toBe(true)
+  const floatPosition = await mini.evaluate(node => getComputedStyle(node).translate)
+  await expect.poll(() => mini.evaluate(node => getComputedStyle(node).translate)).not.toBe(floatPosition)
+  await mini.hover({ force: true })
+  await expect(mini).toHaveCSS("animation-play-state", "paused")
+  await mini.focus()
+  await page.mouse.move(0, 0)
+  await expect(mini).toHaveCSS("animation-play-state", "paused")
+  await mini.evaluate(node => node.blur())
 
   const card = page.locator(".feature-card").first(), cardNode = await card.elementHandle()
   await card.scrollIntoViewIfNeeded()
   await expect(card).toHaveCSS("opacity", "1")
-  expect((await effects(card)).some(effect => effect.duration === 500)).toBe(true)
+  await entrance(card, 650, 24)
   await card.hover()
-  await expect.poll(() => card.locator(".avatar-art").evaluate(node => new DOMMatrixReadOnly(getComputedStyle(node).transform).a)).toBeCloseTo(1.04, 2)
+  await expect(card).toHaveCSS("translate", "0px -4px")
+  await expect.poll(() => card.locator(".avatar-art").evaluate(node => new DOMMatrixReadOnly(getComputedStyle(node).transform).a)).toBeCloseTo(1.055, 3)
   await page.locator(".header-cta").hover()
-  await expect.poll(() => page.locator(".header-cta").evaluate(node => new DOMMatrixReadOnly(getComputedStyle(node).transform).m42)).toBeCloseTo(-2, 1)
+  await expect.poll(() => page.locator(".header-cta").evaluate(node => new DOMMatrixReadOnly(getComputedStyle(node).transform).m42)).toBeCloseTo(-3, 1)
   const count = (await effects(card)).length
   await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }))
   await expect.poll(() => card.evaluate(node => node.getBoundingClientRect().bottom)).toBeLessThan(0)
@@ -471,7 +575,7 @@ test("[mocked API] normal motion preserves entrances, hover effects, viewport-on
   const profile = page.locator(".profile-card").first()
   await profile.scrollIntoViewIfNeeded()
   await expect(profile).toHaveCSS("opacity", "1")
-  expect((await effects(profile)).some(effect => effect.duration === 450)).toBe(true)
+  await entrance(profile, 550, 18)
   await page.evaluate(() => {
     window.__routeChildren = []
     new MutationObserver(() => window.__routeChildren.push(document.querySelector("main").children.length)).observe(document.querySelector("main"), { childList: true })
@@ -506,6 +610,18 @@ test("[mocked API] reduced motion removes translation and sheen loops while keyb
   const reduced = await page.locator(".hero").evaluate(node => ({ sheen: getComputedStyle(node, "::before").animationDuration,
     count: getComputedStyle(node, "::before").animationIterationCount, scroll: getComputedStyle(document.documentElement).scrollBehavior }))
   expect(parseFloat(reduced.sheen)).toBeLessThan(.001); expect(reduced.count).toBe("1"); expect(reduced.scroll).toBe("auto")
+  for (const node of await page.locator(".orbit-runner,.hero-mini").all()) await expect(node).toHaveCSS("animation-name", "none")
+  const reducedMini = page.locator(".hero-mini").first()
+  await reducedMini.hover()
+  await expect(reducedMini).toHaveCSS("translate", "none")
+  await settleCards(page)
+  for (const [selector, initial] of [[".hero-intro", 28], [".hero-art,.feature-card", 24], [".profile-card", 18]]) {
+    for (const node of await page.locator(selector).all()) {
+      // Invisible initial offsets may snap to zero, but must never tween in reduced motion.
+      expect((await translations(node)).every(sample => sample.y === 0 || sample.y === initial)).toBe(true)
+      await expect(node).toHaveCSS("transform", "none")
+    }
+  }
   const toggle = page.getByRole("button", { name: "Open menu", exact: true })
   await toggle.focus()
   await page.keyboard.press("Enter")
@@ -536,18 +652,30 @@ for (const width of [360, 768, 1024, 1440, 1920]) {
     for (const path of ["/", "/discover", `/student/${backend.publicMember.id}`, "/canteen-prices", "/sign-in"]) {
       await page.goto(path)
       await settled(page)
-      if (path === "/") await expect(page.locator(".feature-card")).toHaveCount(3)
-      await noOverflow(page)
-      if (path === "/" && [360, 1440].includes(width)) {
-        for (const card of await page.locator(".feature-card,.profile-card").all()) await card.scrollIntoViewIfNeeded()
-        await expect.poll(() => page.locator(".feature-card,.profile-card").evaluateAll(cards => cards.every(card => getComputedStyle(card).opacity === "1"))).toBe(true)
-        await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }))
-        await page.screenshot({ path: testInfo.outputPath(`home-${width}.png`), fullPage: true })
+      if (path === "/") {
+        await expect(page.locator(".feature-card")).toHaveCount(3)
+        const obscured = await page.locator(".hero-mini strong,.hero-mini small").evaluateAll(labels => {
+          const note = document.querySelector(".art-note").getBoundingClientRect()
+          return labels.filter(label => {
+            const box = label.getBoundingClientRect()
+            return box.left < note.right && box.right > note.left && box.top < note.bottom && box.bottom > note.top
+          }).map(label => label.textContent)
+        })
+        expect(obscured, "The decorative caption must not obscure linked profile labels").toEqual([])
       }
+      await noOverflow(page)
+      await settleCards(page)
+      const name = path === "/" ? "home" : path.startsWith("/student/") ? "profile" : path.slice(1)
+      await page.screenshot({ path: testInfo.outputPath(`${name}-${width}.png`), fullPage: true })
     }
     const account = await backend.account(`layout-${width}`)
+    await saveProfile(backend.db, account.id, backend.refs, { display_name: "Browser Layout Member", bio: "A fictional automated-test profile, with three projects and a private contact.",
+      about: "This disposable profile exercises the populated editor without changing retained campus records.", services: "Study guides, a small workshop, and an idea to share.", interests: ["Making", "Learning together"],
+      projects: [1, 2, 3].map(index => ({ title: `Browser project ${index}`, description: `Independent project ${index} in the disposable layout test.`, audience: index === 1 ? "public" : "owner", sort_order: index - 1 })),
+      contacts: [{ kind: "email", value: "layout@browser.example.invalid", audience: "owner" }] })
     await signIn(page, account)
     await expect(page.getByLabel("Full name")).toBeVisible()
+    await expect(page.getByLabel("Project 3 title")).toHaveValue("Browser project 3")
     await settled(page)
     await noOverflow(page)
     const boxes = await page.locator(".profile-form").evaluate(node => Object.fromEntries(["photo", "skills", "about", "portfolio", "privacy", "contacts", "actions"]
@@ -564,7 +692,7 @@ for (const width of [360, 768, 1024, 1440, 1920]) {
       expect(Math.abs(boxes.photo.left - boxes.skills.left)).toBeLessThan(1)
       expect(boxes.skills.top).toBeGreaterThan(boxes.about.bottom)
     }
-    if ([360, 1440].includes(width)) await page.screenshot({ path: testInfo.outputPath(`editor-${width}.png`), fullPage: true })
+    await page.screenshot({ path: testInfo.outputPath(`editor-${width}.png`), fullPage: true })
   })
 }
 

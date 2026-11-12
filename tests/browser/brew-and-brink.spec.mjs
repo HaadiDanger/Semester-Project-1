@@ -1,12 +1,16 @@
 import { test, expect } from "@playwright/test"
 import { createBrowserBackend } from "./backend.mjs"
 import { createCafeMenuImportSQL, loadCafeMenu } from "../../scripts/lib/cafe-menu-import.mjs"
+import { createCafePhotoUpdateSQL, loadCafePhotoUpdate } from "../../scripts/lib/cafe-photo-update.mjs"
+import { settleCards, textContrast } from "./design.mjs"
+import { attachMotion, effects, recordMotion, translations } from "./motion.mjs"
 
 let backend
 test.beforeAll(async () => {
   backend = await createBrowserBackend()
   const instanceId = (await backend.db.query("select instance_id from private.instance_config")).rows[0].instance_id
   for (const key of ["nescafe-iust", "brew-and-brink"]) await backend.db.exec(createCafeMenuImportSQL({ ...await loadCafeMenu(key), instanceId }))
+  await backend.db.exec(createCafePhotoUpdateSQL({ ...await loadCafePhotoUpdate("nescafe-hot-drink-cups"), instanceId }))
 })
 test.afterAll(async () => { await backend?.close() })
 test.beforeEach(async ({ context, page }) => {
@@ -16,19 +20,23 @@ test.beforeEach(async ({ context, page }) => {
 })
 test.afterEach(() => { expect(backend.errors).toEqual([]) })
 
-for (const width of [360, 1440]) {
+for (const width of [360, 768, 1024, 1440, 1920]) {
   test(`[mocked API] Brew and Brink sizes, sections and café switching work at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 1000 })
     await page.goto("/canteen-prices")
     await expect(page.getByRole("heading", { name: "BREW AND BRINK", exact: true })).toBeVisible()
     await expect(page.locator(".cafe-subtitle")).toHaveText("University Café – Food & Beverages Menu")
     await expect(page.locator(".menu-card")).toHaveCount(29)
+    await expect(page.locator(".cafe-cover > img")).toHaveAttribute("src", "/images/menu/takeaway-latte.webp")
     await expect(page.locator(".menu-provenance")).toContainText("Prices from the supplied menu.")
     await expect(page.getByRole("group", { name: "Menu category", exact: true }).getByRole("button")).toHaveCount(6)
     for (const image of await page.locator(".menu-card img").all()) await image.scrollIntoViewIfNeeded()
     await expect.poll(() => page.locator(".menu-card img,.cafe-cover > img").evaluateAll(images => images.length === 30 && images.every(image => image.complete && image.naturalWidth > 0))).toBe(true)
+    const contrast = await textContrast(page, ".cafe-kicker,.cafe-subtitle,.cafe-location,.cafe-description,.cafe-facts strong,.cafe-facts span,.cafe-facts .btn,.menu-provenance,.menu-card-category,.menu-card-title h3,.menu-card-price,.menu-price-label,.menu-card .menu-photo-credit,.menu-budget-picks button")
+    expect(contrast.filter(item => item.ratio < 4.5)).toEqual([])
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }))
+    await page.evaluate(() => document.fonts.ready)
+    await settleCards(page)
     await page.screenshot({ path: testInfo.outputPath(`brew-and-brink-${width}.png`), fullPage: true })
 
     await page.getByRole("button", { name: /^Tea & Hot Coffee/ }).click()
@@ -58,6 +66,7 @@ for (const width of [360, 1440]) {
   })
 
   test(`[mocked API] published menu prices compare side by side and retain café selections at ${width}px`, async ({ page }, testInfo) => {
+    if (width === 1440) await recordMotion(page)
     await page.setViewportSize({ width, height: 1000 })
     await page.goto("/canteen-prices?view=compare")
     await expect(page.locator(".menu-comparison-card")).toHaveCount(3)
@@ -68,10 +77,21 @@ for (const width of [360, 1440]) {
     await expect(cold.locator(".price-comparison")).toContainText("₹40")
     await expect(page.getByRole("article", { name: "Cheese Fries", exact: true }).locator(".price-comparison")).toContainText("₹60")
     await expect(page.getByRole("article", { name: "Chicken Popcorn", exact: true }).locator(".price-comparison")).toContainText("₹10")
-    for (const card of await page.locator(".menu-comparison-card").all()) await card.scrollIntoViewIfNeeded()
-    await expect.poll(() => page.locator(".menu-comparison-card").evaluateAll(cards => cards.every(card => getComputedStyle(card).opacity === "1"))).toBe(true)
+    await settleCards(page)
+    if (width === 1440) {
+      for (const [index, card] of (await page.locator(".menu-comparison-card").all()).entries()) {
+        expect((await effects(card)).some(effect => effect.duration === 550 && effect.delay === Math.min(index * 50, 250))).toBe(true)
+        const samples = await translations(card)
+        expect(samples.some(sample => sample.y === 18)).toBe(true)
+        expect(samples.some(sample => sample.y > 0 && sample.y < 18)).toBe(true)
+        await expect(card).toHaveCSS("transform", "none")
+      }
+      await attachMotion(page, testInfo)
+    }
+    const contrast = await textContrast(page, ".comparison-note,.comparison-offer h4,.price-amount,.status-badge,.portion-label,.price-comparison,.comparison-menu-link")
+    expect(contrast.filter(item => item.ratio < 4.5)).toEqual([])
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }))
+    await page.evaluate(() => document.fonts.ready)
     await page.screenshot({ path: testInfo.outputPath(`cafe-comparisons-${width}.png`), fullPage: true })
     await page.getByLabel("Max INR", { exact: true }).fill("90")
     await expect(page.locator(".menu-comparison-card")).toHaveCount(2)

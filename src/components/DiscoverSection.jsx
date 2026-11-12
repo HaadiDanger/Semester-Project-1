@@ -29,7 +29,7 @@ export default function DiscoverSection({ filters: sharedFilters, onFiltersChang
   const hasFilters = Object.entries(filters).some(([key, value]) => key !== "page" && Boolean(value))
   const items = results.data?.items || []
   const Heading = standalone ? "h1" : "h2"
-  return <section id="discover" className="discover-section" aria-labelledby="discover-heading"><div className="container">
+  return <section id="discover" className={`discover-section${standalone ? " discover-standalone" : ""}`} aria-labelledby="discover-heading"><div className="container">
     <div className="section-heading"><div><p className="eyebrow">Find your next collaborator</p><Heading id="discover-heading" className="section-title serif-title">A skill. A spark. A connection.</Heading><p className="section-description">From football and handmade crafts to code and cooking. Explore what interests you.</p></div><span className="eyebrow">Campus directory</span></div>
     {setupError ? <SetupNotice /> : <>
       <div className="discover-tools"><SearchBar value={filters.query} onChange={query => change({ query })} placeholder="Search names, skills, or categories" /><FilterBar filters={filters} references={references.data} onChange={change} /></div>

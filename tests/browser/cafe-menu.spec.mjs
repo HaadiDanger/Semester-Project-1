@@ -2,6 +2,8 @@ import { test, expect } from "@playwright/test"
 import { createBrowserBackend } from "./backend.mjs"
 import { rpc } from "../helpers/database.mjs"
 import { createCafeMenuImportSQL, loadCafeMenu } from "../../scripts/lib/cafe-menu-import.mjs"
+import { createCafePhotoUpdateSQL, loadCafePhotoUpdate } from "../../scripts/lib/cafe-photo-update.mjs"
+import { settleCards, textContrast } from "./design.mjs"
 
 // Actual application SQL and committed photograph bytes; HTTP/Auth are explicitly doubled.
 let backend
@@ -9,6 +11,7 @@ test.beforeAll(async () => {
   backend = await createBrowserBackend()
   const instanceId = (await backend.db.query("select instance_id from private.instance_config")).rows[0].instance_id
   await backend.db.exec(createCafeMenuImportSQL({ ...await loadCafeMenu(), instanceId }))
+  await backend.db.exec(createCafePhotoUpdateSQL({ ...await loadCafePhotoUpdate("nescafe-hot-drink-cups"), instanceId }))
 })
 test.afterAll(async () => { await backend?.close() })
 test.beforeEach(async ({ context, page }) => {
@@ -18,7 +21,7 @@ test.beforeEach(async ({ context, page }) => {
 })
 test.afterEach(() => { expect(backend.errors).toEqual([]) })
 
-for (const width of [360, 1440]) {
+for (const width of [360, 768, 1024, 1440, 1920]) {
   test(`[mocked API] NESCAFÉ’s 30 menu-board prices, real local photographs and credits render at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 1000 })
     await page.goto("/canteen-prices")
@@ -28,6 +31,20 @@ for (const width of [360, 1440]) {
     await expect(page.locator(".menu-card").filter({ has: page.getByRole("heading", { name: "Tea", exact: true }) })).toContainText("₹15")
     for (const image of await page.locator(".menu-card img").all()) await image.scrollIntoViewIfNeeded()
     await expect.poll(() => page.locator(".menu-card img,.cafe-cover > img").evaluateAll(images => images.length === 31 && images.every(image => image.complete && image.naturalWidth > 0))).toBe(true)
+    const drinkPaths = []
+    for (const [name, key] of [["Cappuccino", "cappuccino"], ["Cafe Latte", "latte"], ["Cafe Mocha", "mocha"], ["Hot Chocolate", "hot-chocolate"]]) {
+      const drink = page.getByRole("article", { name, exact: true }), path = `/images/menu/takeaway-${key}.webp`
+      await expect(drink.locator("img")).toHaveAttribute("src", path)
+      await expect(drink.locator("img")).toHaveAttribute("alt", /disposable.*illustrative photo/)
+      await expect(drink.locator(".menu-card-price")).toHaveText("₹30")
+      drinkPaths.push(await drink.locator("img").getAttribute("src"))
+    }
+    expect(new Set(drinkPaths).size).toBe(4)
+    await expect(page.locator(".cafe-cover > img")).toHaveAttribute("src", "/images/menu/takeaway-cappuccino.webp")
+    const mocha = page.getByRole("article", { name: "Cafe Mocha", exact: true })
+    await mocha.locator("summary").click()
+    await expect(mocha.locator(".menu-photo-credit a").first()).toHaveAttribute("href", "https://www.flickr.com/photos/lara604/3684264913/")
+    await expect(mocha.locator(".menu-photo-credit a").last()).toHaveAttribute("href", "https://creativecommons.org/licenses/by-sa/2.0/")
     const card = page.locator(".menu-card").first()
     await card.locator("summary").click()
     await expect(card.locator(".menu-photo-credit a").first()).toHaveAttribute("href", /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/)
@@ -35,9 +52,17 @@ for (const width of [360, 1440]) {
     await expect(card).toContainText("Illustrative photo")
     await page.locator(".menu-source-details summary").click()
     await expect(page.locator(".menu-source-details")).toContainText("capture date was not supplied")
+    const contrast = await textContrast(page, ".cafe-kicker,.cafe-subtitle,.cafe-location,.cafe-description,.cafe-facts strong,.cafe-facts span,.cafe-facts .btn,.menu-provenance,.menu-card-category,.menu-card-title h3,.menu-card-price,.menu-price-label,.menu-card .menu-photo-credit,.menu-budget-picks button,.menu-source-details")
+    expect(contrast.filter(item => item.ratio < 4.5)).toEqual([])
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }))
+    await page.evaluate(() => document.fonts.ready)
+    await settleCards(page)
     await page.screenshot({ path: testInfo.outputPath(`nescafe-menu-${width}.png`), fullPage: true })
+    await page.getByRole("button", { name: /^Hot beverages/ }).click()
+    await expect(page.locator(".menu-card")).toHaveCount(5)
+    await settleCards(page)
+    for (const image of await page.locator(".menu-card img").all()) await image.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: testInfo.outputPath(`nescafe-hot-drink-cups-${width}.png`), fullPage: true })
   })
 }
 

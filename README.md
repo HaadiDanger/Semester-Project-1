@@ -2,11 +2,11 @@
 
 A Supabase-backed campus directory, portfolio and café-menu application with canteen comparisons, built with React, Vite, JavaScript, Tailwind CSS and Framer Motion.
 
-The original charcoal, mint and lavender design, fluid desktop proportions, two-column editor and motion timings are retained. Fictional portraits have been replaced with initials and neutral artwork.
+The soft-dark campus-field-guide identity pairs charcoal green with sage, warm copper and off-white, using Archivo body text and Newsreader headlines. Existing components, routes, interactions and the responsive editor are retained. Two visible CSS orbits, gently moving hero cards, stronger entrances and clearer hover feedback make the motion more apparent; reduced-motion preferences are respected. Fictional portraits remain replaced with initials and neutral artwork. See the [design references and refinement record](docs/implementation-report.md#editorial-refinement-12-november-2026).
 
 ## Run the local application
 
-The local setup, checked on **10 November 2026**, has **45 publicly listed sample profiles**, **BREW AND BRINK’s 29-item menu** and **NESCAFÉ IUST’s 30-item menu**. Anas Tech has been removed from public discovery, its profile page and public photo access. Café names, menu items and prices are stored in Supabase, alongside profile/photo/portfolio data. Keep Docker Desktop running and use Node.js 24.
+The local setup, checked on **12 November 2026**, has **45 publicly listed sample profiles**, **BREW AND BRINK’s 29-item menu** and **NESCAFÉ IUST’s 30-item menu**. Anas Tech has been removed from public discovery, its profile page and public photo access. Café names, menu items and prices are stored in Supabase, alongside profile/photo/portfolio data. Keep Docker Desktop running and use Node.js 24.
 
 For this configured checkout, restart from the repository root. In one terminal:
 
@@ -28,11 +28,12 @@ Open **http://localhost:5173**. Supabase retains the database between restarts. 
 
 Open **http://localhost:5173/canteen-prices** and use **Choose café**. **BREW AND BRINK** has **29 listings in five sections**, priced **₹15–₹170**, with the supplied Small/Large sizes. **NESCAFÉ IUST** has **30 listings in four sections**, priced **₹15–₹120**. Both support category/search/budget filters and price sorting. Names and amounts come from the supplied menus; food photographs are real, credited illustrations served locally.
 
-Both cafés are imported in this checkout’s local database. On a fresh database, apply all migrations, inspect the instance UUID and run:
+Both cafés and NESCAFÉ's four-drink disposable-cup photo update are applied in this checkout's local database. Cappuccino, Cafe Latte, Cafe Mocha and Hot Chocolate use distinct, drink-appropriate photographs; prices and Brew and Brink remain unchanged. On a fresh database, apply all migrations, inspect the instance UUID and run:
 
 ```sh
 npm run menu:import -- --cafe nescafe-iust --instance YOUR_INSPECTED_INSTANCE_UUID
 npm run menu:import -- --cafe brew-and-brink --instance YOUR_INSPECTED_INSTANCE_UUID
+npm run menu:import -- --photo-update nescafe-hot-drink-cups --instance YOUR_INSPECTED_INSTANCE_UUID
 ```
 
 Open **[Compare prices](http://localhost:5173/canteen-prices?view=compare)** to choose two cafés and compare matching published menu items side by side, with lower-price highlights, differences and budget filters. Size variants stay separate and unknown serving quantities are labelled. See **[Café setup and maintenance](docs/cafes.md)** for source records, repeatable imports, publication controls and the photograph workflow.
@@ -87,7 +88,9 @@ npm run lint
 npm run build
 ```
 
-On **10 November**, all **82 Node tests**, lint and the production build passed. All **33 Chromium scenarios** passed across the initial run and focused reruns, including comparisons at **360px and 1440px**. The real local database has all **ten migrations** applied; actual PostgREST and browser checks confirmed the three shared menu items, both prices, budget filtering and café swapping. SQL lint reported **32 warnings and no errors**. See the [verification record](docs/implementation-report.md#café-comparison-fix-10-november-2026) for details.
+On **12 November 2026**, the completed soft-dark and cup-photo changes passed all **86 Node tests**, lint and the production build. The latest full browser run passed **44/45** scenarios; the signup-resend check timed out on a blank page before filling the form, then passed in an **unchanged 1/1 focused rerun**. Thus **45 distinct scenarios passed across those runs**, not one zero-failure post-photo run. Coverage includes enhanced/reduced motion, retained interactions, the populated editor, both café menus and comparisons at **360, 768, 1024, 1440 and 1920px**. Browser regressions use the actual frontend and application SQL with explicitly doubled HTTP/Auth/Storage. Selected solid-surface contrast and delayed-font geometry checks also passed; these are not a complete accessibility or page-load performance audit. Separate, unmocked local Chromium checks confirmed real orbit movement and all four cup photos at desktop/mobile widths. See the [current verification record](docs/implementation-report.md#5-executed-verification).
+
+The earlier **10 November** real-local checks confirmed all **ten migrations**, the three shared menu items, both prices, budget filtering and café swapping; SQL lint reported **32 warnings and no errors**. The visual refinement made no database changes. The separate **12 November** guarded photo transaction changed only four NESCAFÉ listing photo pointers/versions and its cover, inserted missing photo metadata and recorded one audit. Before/after checks confirmed unchanged prices, publication, Brew and Brink, profile/account data and Storage; inventory remains **2 cafés, 59 published listings and 45 public profiles**.
 
 Real local Auth/PostgREST/Storage/Edge integration, profile/portfolio persistence and confirmation/resend/password-recovery flows also passed. See the [implementation report](docs/implementation-report.md) for evidence and remaining acceptance work. External email activation requires sender credentials through [email setup](docs/email.md).
 
