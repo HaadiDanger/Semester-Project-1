@@ -1,12 +1,16 @@
 import { createClient } from "@supabase/supabase-js"
+import { phonePreview } from "./preview"
 
-export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim() || ""
+const configuredUrl = import.meta.env.VITE_SUPABASE_URL?.trim() || ""
+const previewProxy = phonePreview && configuredUrl === "/supabase"
+export const supabaseUrl = previewProxy ? new URL("/supabase", window.location.origin).toString() : configuredUrl
 export const supabaseKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || "").trim()
 function configurationProblem() {
   if (!supabaseUrl || !supabaseKey || /YOUR_|your-project/i.test(supabaseUrl + supabaseKey)) return "Add your Supabase project URL and publishable key to .env.local."
   try {
     const url = new URL(supabaseUrl)
-    if (url.username || url.password || url.search || url.hash || (url.protocol !== "https:" && !(url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)))) return "Use an HTTPS Supabase URL, or a local Supabase URL."
+    const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) || (previewProxy && url.origin === window.location.origin)
+    if (url.username || url.password || url.search || url.hash || (url.protocol !== "https:" && !(url.protocol === "http:" && local))) return "Use an HTTPS Supabase URL, or a local Supabase URL."
   } catch { return "The Supabase project URL is invalid." }
   if (supabaseKey.startsWith("sb_secret_")) return "Use a publishable key, never a privileged server key."
   if (supabaseKey.split(".").length === 3) {
@@ -19,7 +23,7 @@ function configurationProblem() {
 }
 export const setupError = configurationProblem()
 export const supabase = setupError ? null : createClient(supabaseUrl, supabaseKey, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce", storageKey: "iust-connect-auth" },
+  auth: { persistSession: !phonePreview, autoRefreshToken: !phonePreview, detectSessionInUrl: !phonePreview, flowType: "pkce", storageKey: phonePreview ? "iust-orbit-phone-preview" : "iust-connect-auth" },
 })
 export function authRedirect(path) { return new URL(path, import.meta.env.VITE_APP_URL || window.location.origin).toString() }
 export function authLinkError({ search, hash }) {

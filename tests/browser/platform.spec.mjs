@@ -524,8 +524,12 @@ test("[mocked API] enhanced motion shows real orbits, entrances and hover effect
   await expect.poll(() => page.locator(".hero").evaluate(node => getComputedStyle(node, "::before").backgroundPosition)).not.toBe(sheen.position)
   await expect(page.locator(".hero-orbit")).toHaveAttribute("aria-hidden", "true")
   await expect(page.locator(".hero-orbit")).toHaveCSS("pointer-events", "none")
-  await expect(page.locator(".orbit-runner")).toHaveCount(2)
-  for (const [selector, duration, direction, diameter] of [[".orbit-runner-outer", "16s", "normal", "14px"], [".orbit-runner-inner", "24s", "reverse", "10px"]]) {
+  await expect(page.locator(".orbit-plane")).toHaveCount(3)
+  await expect(page.locator(".orbit-runner")).toHaveCount(3)
+  await expect(page.locator(".orbit-core")).toHaveCount(1)
+  await expect(page.locator(".orbit-star")).toHaveCount(3)
+  await expect(page.locator(".hero-orbit a,.hero-orbit button")).toHaveCount(0)
+  for (const [selector, duration, direction, diameter] of [[".orbit-runner-outer", "16s", "normal", "14px"], [".orbit-runner-inner", "24s", "reverse", "10px"], [".orbit-runner-cross", "32s", "normal", "8px"]]) {
     const orbit = page.locator(selector)
     await expect(orbit).toHaveCSS("animation-duration", duration)
     await expect(orbit).toHaveCSS("animation-direction", direction)
@@ -535,8 +539,22 @@ test("[mocked API] enhanced motion shows real orbits, entrances and hover effect
     const position = await orbit.evaluate(node => getComputedStyle(node).transform)
     await expect.poll(() => orbit.evaluate(node => getComputedStyle(node).transform)).not.toBe(position)
     expect(await orbit.evaluate(node => getComputedStyle(node, "::before").width)).toBe(diameter)
-    expect(await orbit.evaluate(node => getComputedStyle(node).borderTopColor)).not.toBe("rgba(0, 0, 0, 0)")
+    const finish = await orbit.evaluate(node => ({ trail: getComputedStyle(node, "::after").backgroundImage,
+      mask: getComputedStyle(node, "::after").maskImage, glow: getComputedStyle(node, "::before").boxShadow }))
+    expect(finish.trail).toContain("conic-gradient")
+    expect(finish.mask).toContain("radial-gradient")
+    expect(finish.glow).not.toBe("none")
   }
+  for (const selector of [".orbit-plane-cross", ".orbit-star"]) {
+    const node = page.locator(selector).first()
+    const frames = await node.evaluate(element => element.getAnimations()[0].effect.getKeyframes())
+    expect(frames.every(frame => Object.keys(frame).every(key => ["offset", "computedOffset", "easing", "composite", "transform", "opacity"].includes(key)))).toBe(true)
+    const position = await node.evaluate(element => getComputedStyle(element).transform)
+    await expect.poll(() => node.evaluate(element => getComputedStyle(element).transform)).not.toBe(position)
+  }
+  const aura = await page.locator(".hero-orbit").evaluate(node => ({ duration: getComputedStyle(node, "::before").animationDuration,
+    name: getComputedStyle(node, "::before").animationName }))
+  expect(aura).toEqual({ duration: "10s", name: "orbit-breathe" })
   const mini = page.locator(".hero-mini").first()
   await expect(mini).toHaveCSS("animation-duration", "8s")
   const floatFrames = await mini.evaluate(node => node.getAnimations()[0].effect.getKeyframes())
@@ -610,7 +628,8 @@ test("[mocked API] reduced motion removes translation and sheen loops while keyb
   const reduced = await page.locator(".hero").evaluate(node => ({ sheen: getComputedStyle(node, "::before").animationDuration,
     count: getComputedStyle(node, "::before").animationIterationCount, scroll: getComputedStyle(document.documentElement).scrollBehavior }))
   expect(parseFloat(reduced.sheen)).toBeLessThan(.001); expect(reduced.count).toBe("1"); expect(reduced.scroll).toBe("auto")
-  for (const node of await page.locator(".orbit-runner,.hero-mini").all()) await expect(node).toHaveCSS("animation-name", "none")
+  for (const node of await page.locator(".orbit-plane-cross,.orbit-runner,.orbit-star,.hero-mini").all()) await expect(node).toHaveCSS("animation-name", "none")
+  expect(await page.locator(".hero-orbit").evaluate(node => getComputedStyle(node, "::before").animationName)).toBe("none")
   const reducedMini = page.locator(".hero-mini").first()
   await reducedMini.hover()
   await expect(reducedMini).toHaveCSS("translate", "none")
@@ -644,6 +663,132 @@ test("[mocked API] reduced motion removes translation and sheen loops while keyb
   expect((await effects(page.locator("#main-content > div"))).every(effect => effect.duration === 0)).toBe(true)
   await noOverflow(page)
   await attachMotion(page, testInfo)
+})
+
+test("[mocked API] phone and touch landscape retain two orbits and pause them offscreen or when hidden", async ({ browser }, testInfo) => {
+  const context = await browser.newContext({ baseURL: "http://127.0.0.1:4173", viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, reducedMotion: "no-preference" })
+  try {
+    await backend.attach(context)
+    const page = await context.newPage()
+    page.on("pageerror", error => backend.errors.push(error.message))
+    for (const [width, height] of [[360, 780], [390, 844], [430, 932], [844, 390]]) {
+      await page.setViewportSize({ width, height })
+      await page.goto("/")
+      await settled(page)
+      await page.locator(".hero-art").scrollIntoViewIfNeeded()
+      await expect(page.locator(".hero")).toHaveAttribute("data-motion", "active")
+      expect(await page.locator(".hero").evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.effect.getTiming().iterations === Infinity).length)).toBe(2)
+      for (const selector of [".orbit-plane-cross", ".orbit-runner-cross", ".orbit-star", ".hero-mini"]) {
+        for (const node of await page.locator(selector).all()) await expect(node).toHaveCSS("animation-name", "none")
+      }
+      for (const selector of [".hero", ".hero-orbit"]) expect(await page.locator(selector).evaluate(node => getComputedStyle(node, "::before").animationName)).toBe("none")
+      for (const selector of [".orbit-runner-outer", ".orbit-runner-inner"]) {
+        const runner = page.locator(selector)
+        await expect(runner).toHaveCSS("animation-name", "orbit-turn")
+        const position = await runner.evaluate(node => getComputedStyle(node).transform)
+        await expect.poll(() => runner.evaluate(node => getComputedStyle(node).transform)).not.toBe(position)
+      }
+      const button = await page.locator(".search-submit").boundingBox()
+      expect(button.width).toBeGreaterThanOrEqual(44); expect(button.height).toBeGreaterThanOrEqual(44)
+      await noOverflow(page)
+      await page.screenshot({ path: testInfo.outputPath(`phone-orbits-${width}x${height}.png`) })
+    }
+    const hero = page.locator(".hero"), runners = page.locator(".orbit-runner-outer,.orbit-runner-inner")
+    const visibility = state => page.evaluate(state => {
+      Object.defineProperty(document, "visibilityState", { configurable: true, value: state })
+      document.dispatchEvent(new Event("visibilitychange"))
+    }, state)
+    await visibility("hidden")
+    await expect(hero).toHaveAttribute("data-motion", "paused")
+    for (const runner of await runners.all()) await expect(runner).toHaveCSS("animation-play-state", "paused")
+    const paused = await runners.evaluateAll(nodes => nodes.map(node => getComputedStyle(node).transform))
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    expect(await runners.evaluateAll(nodes => nodes.map(node => getComputedStyle(node).transform))).toEqual(paused)
+    await visibility("visible")
+    await expect(hero).toHaveAttribute("data-motion", "active")
+    await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }))
+    await expect(hero).toHaveAttribute("data-motion", "paused")
+    for (const runner of await runners.all()) await expect(runner).toHaveCSS("animation-play-state", "paused")
+    await page.locator(".hero-art").scrollIntoViewIfNeeded()
+    await expect(hero).toHaveAttribute("data-motion", "active")
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    expect(await hero.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.effect.getTiming().iterations === Infinity).length)).toBe(0)
+    await expect(page.locator(".phone-preview-banner")).toHaveCount(0)
+  } finally { await context.close() }
+})
+
+test("[mocked API] offscreen profile photos are deferred, blob URLs are released, and late photos are cancelled", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.addInitScript(() => {
+    window.__photoResources = { created: [], revoked: [], reads: [] }
+    const create = URL.createObjectURL, revoke = URL.revokeObjectURL, fetch = window.fetch
+    URL.createObjectURL = function (blob) { const url = create.call(this, blob); window.__photoResources.created.push(url); return url }
+    URL.revokeObjectURL = function (url) { window.__photoResources.revoked.push(url); return revoke.call(this, url) }
+    window.fetch = function (input, init) {
+      if (typeof input !== "string" || !input.endsWith("/asset-gateway") || JSON.parse(init?.body || "{}").action !== "read") return fetch.call(this, input, init)
+      const record = { aborted: false, completed: false }
+      window.__photoResources.reads.push(record)
+      const abort = () => { record.aborted = true }
+      init.signal?.addEventListener("abort", abort, { once: true })
+      return fetch.call(this, input, init).finally(() => { record.completed = true; init.signal?.removeEventListener("abort", abort) })
+    }
+  })
+  await signIn(page, backend.publicMember, "/")
+  await page.getByRole("searchbox", { name: "Search the campus directory" }).fill("Browser Privacy Member")
+  const card = page.locator(".profile-card").filter({ hasText: "Browser Privacy Member" })
+  await expect(page.locator(".profile-card")).toHaveCount(1)
+  await settled(page)
+  expect((await card.boundingBox()).y).toBeGreaterThan(1044)
+  expect(await page.evaluate(() => window.__photoResources.reads.length)).toBe(0)
+  await card.scrollIntoViewIfNeeded()
+  await expect(card.locator("img")).toBeVisible()
+  await expect(card.locator("img")).toHaveAttribute("decoding", "async")
+  const photo = await card.locator("img").getAttribute("src")
+  expect(photo).toMatch(/^blob:/)
+  expect(await page.evaluate(() => window.__photoResources.reads.length)).toBe(1)
+  const cafes = async () => {
+    await page.getByRole("button", { name: "Open menu", exact: true }).click()
+    await page.getByRole("navigation", { name: "Mobile navigation" }).getByRole("link", { name: "Campus cafés", exact: true }).click()
+    await expect(page).toHaveURL(/\/canteen-prices$/)
+    await settled(page)
+  }
+  await cafes()
+  expect(await page.evaluate(url => window.__photoResources.revoked.includes(url), photo)).toBe(true)
+  await page.getByRole("button", { name: "Open menu", exact: true }).click()
+  await page.getByRole("navigation", { name: "Mobile navigation" }).getByRole("link", { name: "Home", exact: true }).click()
+  await page.getByRole("searchbox", { name: "Search the campus directory" }).fill("Browser Privacy Member")
+  await expect(page.locator(".profile-card")).toHaveCount(1)
+  let began, release
+  const started = new Promise(resolve => { began = resolve }), gate = new Promise(resolve => { release = resolve })
+  await page.route("**/functions/v1/asset-gateway", async route => { began(); await gate; await route.fallback() })
+  try {
+    await card.scrollIntoViewIfNeeded()
+    await started
+    await cafes()
+    await expect.poll(() => page.evaluate(() => window.__photoResources.reads.at(-1).aborted)).toBe(true)
+  } finally { release() }
+  await expect.poll(() => page.evaluate(() => window.__photoResources.reads.at(-1).completed)).toBe(true)
+  expect(await page.evaluate(() => window.__photoResources.created)).toEqual([photo])
+  expect(await page.evaluate(() => window.__photoResources.revoked)).toEqual([photo])
+})
+
+test("[mocked API] non-home route modules load on demand without changing public navigation", async ({ page }) => {
+  const modules = new Set()
+  page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith("/src/pages/")) modules.add(path.split("/").at(-1)) })
+  await page.goto("/")
+  await settled(page)
+  expect([...modules]).toEqual(["HomePage.jsx"])
+  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Campus cafés", exact: true }).click()
+  await expect(page).toHaveURL(/\/canteen-prices$/)
+  await settled(page)
+  expect(modules.has("CanteenPage.jsx")).toBe(true)
+  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Discover", exact: true }).click()
+  await expect(page.locator(".profile-card")).toHaveCount(12)
+  expect(modules.has("DiscoverPage.jsx")).toBe(true)
+  await page.locator(".profile-card a").first().click()
+  await expect(page.locator(".profile-surface")).toBeVisible()
+  expect(modules.has("StudentPage.jsx")).toBe(true)
+  for (const name of ["AuthPage.jsx", "AuthCallbackPage.jsx", "MyProfilePage.jsx", "AdminPage.jsx"]) expect(modules.has(name)).toBe(false)
 })
 
 for (const width of [360, 768, 1024, 1440, 1920]) {

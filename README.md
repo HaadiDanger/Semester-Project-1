@@ -2,7 +2,7 @@
 
 A Supabase-backed campus directory, portfolio and café-menu application with canteen comparisons, built with React, Vite, JavaScript, Tailwind CSS and Framer Motion.
 
-The soft-dark campus-field-guide identity pairs charcoal green with sage, warm copper and off-white, using Archivo body text and Newsreader headlines. Existing components, routes, interactions and the responsive editor are retained. Two visible CSS orbits, gently moving hero cards, stronger entrances and clearer hover feedback make the motion more apparent; reduced-motion preferences are respected. Fictional portraits remain replaced with initials and neutral artwork. See the [design references and refinement record](docs/implementation-report.md#editorial-refinement-12-november-2026).
+The soft-dark campus-field-guide identity pairs charcoal green with sage, warm copper and off-white, using Archivo body text and Newsreader headlines. Existing routes, interactions and the responsive editor are retained. Desktop retains three angled CSS orbits, gradient trails, glowing satellites, a breathing halo and gently floating profile cards. Phones keep two moving orbits with lighter shadows; ambient motion pauses offscreen or in a hidden tab, and reduced motion stops it. Fictional portraits remain replaced with initials and neutral artwork. See the [design references](docs/implementation-report.md#editorial-refinement-12-november-2026), [premium orbit refinement](docs/implementation-report.md#premium-orbit-refinement-13-november-2026) and [phone optimization](docs/implementation-report.md#phone-optimization-and-lan-preview-13-november-2026).
 
 ## Run the local application
 
@@ -23,6 +23,20 @@ npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
 Open **http://localhost:5173**. Supabase retains the database between restarts. For a fresh checkout, run `npm ci` and follow **[Local Supabase setup](docs/setup.md)** to inspect the database and generate the ignored configuration with `npm run connect:local`.
+
+### Test on your phone (same network)
+
+Keep Docker, local Supabase and the Edge Functions terminal running. In another terminal, run:
+
+```sh
+npm run preview:phone
+```
+
+Open the printed **Phone preview** URL on a phone connected to the **same router/Wi-Fi** as this computer. For this PC on **13 November 2026**, it is **[http://192.168.29.174:4175/](http://192.168.29.174:4175/)**. The address can change after reconnecting; rerun the command to see the current link. Keep the preview terminal and PC running. A guest Wi-Fi network that isolates devices will not work. This is a local-network link, not an internet deployment.
+
+The command builds a separate, production-optimized snapshot into a temporary directory and serves only built public files, not the development workspace. Its same-origin proxy permits anonymous public directory/profile/menu/image reads; browser tokens and cookies are not forwarded. Sign-in, uploads, administration and account changes are disabled **only in this preview**. Use the normal application for those flows. Source edits require restarting the phone preview. Ctrl+C stops it and removes its temporary build. Optional overrides: `npm run preview:phone -- --host YOUR_ASSIGNED_PRIVATE_LAN_IP --port 4175`.
+
+Use **Show performance meter**, or append **`/?perf=1`**, for estimated rAF FPS, frame gaps over 50ms and JS heap where the browser supports it. **JS heap is not total phone/browser RAM**: it excludes images, GPU buffers and browser processes, and some browsers do not report it. Close the meter for a clean usage test, scroll through the directory and both café menus, switch pages repeatedly, then background/reopen the browser. Physical-phone smoothness and RAM still need an on-device check.
 
 ### Browse campus cafés
 
@@ -88,7 +102,7 @@ npm run lint
 npm run build
 ```
 
-On **12 November 2026**, the completed soft-dark and cup-photo changes passed all **86 Node tests**, lint and the production build. The latest full browser run passed **44/45** scenarios; the signup-resend check timed out on a blank page before filling the form, then passed in an **unchanged 1/1 focused rerun**. Thus **45 distinct scenarios passed across those runs**, not one zero-failure post-photo run. Coverage includes enhanced/reduced motion, retained interactions, the populated editor, both café menus and comparisons at **360, 768, 1024, 1440 and 1920px**. Browser regressions use the actual frontend and application SQL with explicitly doubled HTTP/Auth/Storage. Selected solid-surface contrast and delayed-font geometry checks also passed; these are not a complete accessibility or page-load performance audit. Separate, unmocked local Chromium checks confirmed real orbit movement and all four cup photos at desktop/mobile widths. See the [current verification record](docs/implementation-report.md#5-executed-verification).
+On **13 November 2026**, the completed phone/orbit changes passed **91/91 Node tests**, a single **48/48 full Chromium run with zero retries**, lint and the production build. Coverage includes normal Auth/editor/admin/privacy flows, both café menus/comparisons at **360, 768, 1024, 1440 and 1920px**, phone/touch landscape, offscreen/background motion pauses, deferred/cancelled photos, blob cleanup and lazy routes. The suite uses the actual frontend and application SQL with explicitly doubled HTTP/Auth/Storage. Separate, **unmocked production LAN** checks passed at four phone/touch sizes with both menus, preview restrictions and diagnostic cleanup. At **390×844 / DPR 3 / 6× desktop CPU slowdown**, the production preview sampled about **60 rAF FPS**, no intervals over 50ms, and **4.774 MB post-GC JS heap**. Heap is essentially unchanged from baseline; continuous hero effects dropped **11 → 2**. These are not total RAM, physical-phone smoothness, cross-browser or complete accessibility audit results. See the [phone measurements and limits](docs/implementation-report.md#measured-performance-and-limits) and [verification record](docs/implementation-report.md#5-executed-verification).
 
 The earlier **10 November** real-local checks confirmed all **ten migrations**, the three shared menu items, both prices, budget filtering and café swapping; SQL lint reported **32 warnings and no errors**. The visual refinement made no database changes. The separate **12 November** guarded photo transaction changed only four NESCAFÉ listing photo pointers/versions and its cover, inserted missing photo metadata and recorded one audit. Before/after checks confirmed unchanged prices, publication, Brew and Brink, profile/account data and Storage; inventory remains **2 cafés, 59 published listings and 45 public profiles**.
 
